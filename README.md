@@ -29,39 +29,41 @@ git clone https://github.com/rickdoerr/swing-sense.git
 
 #### Agent
 1.  **Create a virtual environment**
-
-    In the root of the project, create a new virtual environment:
+In the root of the project, create a new virtual environment:
 
 ```bash
 cd swing-sense
 python3 -m venv .venv
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 2.  **Install dependencies**
-
-    Install all required packages from `requirements.txt`:
+Install all required packages from `requirements.txt`:
 
 ```bash
 pip install -r agent/requirements.txt
 adk --verion
 ```
 
-3.  **Run the Agent**
+3. **Add Google Gemini Credentials**
+Create an .env file (see .env.example) and add your Gemini API key. You can obtain one from https://aistudio.google.com/. 
 
-    In the root of the project, either open the ADK debug web application using the ADK CLI:
+4.  **Run the Agent**
+In the root of the project, either open the ADK debug web application using the ADK CLI:
 
 ```bash
 adk web
 ```
 
-    or start the development server 
+or start the development server 
 
 ```bash
 adk api_server
 ```
 
 #### Webapp
+The app is built with Bun, make sure it's installed on your machine, or visit https://bun.com/ to find out how to do that. With Bun installed: 
+
 ```bash
 cd webapp
 bun install
