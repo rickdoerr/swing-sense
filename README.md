@@ -17,7 +17,53 @@ The project consists of a SvelteKit + Bun web application that handles the compu
 
 ## Getting Started
 
-#### Docker 
-TODO
+### Docker 
+Ensure you have Docker installed and running
 
-#### Local Development
+```bash
+git clone https://github.com/rickdoerr/swing-sense.git
+./docker-build.sh
+```
+
+### Local Development
+
+#### Agent
+1.  **Create a virtual environment**
+
+    In the root of the project, create a new virtual environment:
+
+```bash
+cd swing-sense
+python3 -m venv .venv
+source venv/bin/activate
+```
+
+2.  **Install dependencies**
+
+    Install all required packages from `requirements.txt`:
+
+```bash
+pip install -r agent/requirements.txt
+adk --verion
+```
+
+3.  **Run the Agent**
+
+    In the root of the project, either open the ADK debug web application using the ADK CLI:
+
+```bash
+adk web
+```
+
+    or start the development server 
+
+```bash
+adk api_server
+```
+
+#### Webapp
+```bash
+cd webapp
+bun install
+bun run dev --port=3000 --open
+```
