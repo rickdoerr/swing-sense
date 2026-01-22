@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  agent:
+    build: 
+      context: ./agent
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    restart: always
+    networks:
+      - golf-net
+
+  webapp:
+    build: 
+      context: ./pose-estimator
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - agent
+    environment:
+      # In Docker network, 'agent' resolves to the agent service IP
+      - AGENT_BASE_URL=http://agent:8000
+      - ORIGIN=http://localhost:3000
+    networks:
+      - golf-net
+
+networks:
+  golf-net:
+    driver: bridge
