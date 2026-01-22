@@ -14,9 +14,7 @@ A web app that analyzes golf swings using computer vision and Generative AI for 
 
 ### Local Development
 
-#### Pose Estimator
-
 ```bash
 bun install
-bun run dev --open
+bun run dev --port=3000 --open
 ```
