@@ -36,6 +36,10 @@ The application follows standard SvelteKit conventions but separates core domain
     *   **/processors**: Data processing pipelines (e.g., smoothing, filtering pose data).
     *   **/auth**: Authentication configuration (Better Auth).
 
+#### Architecture Decisions
+
+The webapp communicates with an AI Agent powered by Gemini. The AI Agent is built using Google's ADK (see root/agent). For the agent to process a new user request, it requires a user ID and a session ID. At the moment every video upload or video re-processing triggers a new session. This is the intended behaviour right now. 
+
 ### Data Flow
 1.  **Input**: Video or real-time camera feed is processed (likely client-side via MediaPipe or uploaded).
 2.  **Processing**: Raw landmarks are extracted and processed using `processors` and `math` modules.
@@ -48,6 +52,8 @@ The application follows standard SvelteKit conventions but separates core domain
 *   Bun installed (`curl -fsSL https://bun.sh/install | bash`)
 
 **Commands:**
+Called only when in root/webapp:
+
 *   **Install Dependencies:**
     ```bash
     bun install
@@ -55,6 +61,11 @@ The application follows standard SvelteKit conventions but separates core domain
 *   **Start Dev Server:**
     ```bash
     bun run dev --port=3000
+    ```
+
+*   **Check for Build Errors**
+    ```bash
+    bun run check
     ```
 *   **Database Migration:**
     ```bash
