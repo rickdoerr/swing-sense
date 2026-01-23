@@ -14,11 +14,8 @@
 	setContext("sessionState", sessionStore);
 
 	onMount(() => {
-		sessionStore.current.create();
-	});
-
-	$effect(() => {
 		sessionStore.current.sync(data);
+		sessionStore.current.create();
 	});
 </script>
 
