@@ -16,8 +16,13 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
         // If accepted and we have a userId, persist the user identity.
         // This is for situations in which annonymous users transition to logged in accounts.
-        if (isAccepted && userId) {
-            cookies.set('gu_id', userId, {
+        if (isAccepted) {
+            // Check for existing anonymous ID or generate a new one
+            // We DO NOT want to use the passed in userId if it's an authenticated ID
+            // Ideally, we should have read the cookie, but if it's missing, we start a new anonymous chain.
+            const anonymousId = cookies.get('gu_id') || crypto.randomUUID();
+
+            cookies.set('gu_id', anonymousId, {
                 path: '/',
                 httpOnly: true,
                 sameSite: 'lax',

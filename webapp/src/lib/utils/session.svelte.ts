@@ -24,8 +24,7 @@ export class Session {
         await fetch('/api/consent', {
             method: 'POST',
             body: JSON.stringify({
-                consent: status,
-                userId: this.userId_
+                consent: status
             }),
             headers: { 'content-type': 'application/json' }
         });

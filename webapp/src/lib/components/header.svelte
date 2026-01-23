@@ -10,6 +10,11 @@
 
     async function handleLogout() {
         await authClient.signOut();
+
+        // Reload app so we can trigger a new user ID sync between client and server.
+        // After a log out, we are either going to get a new user ID generated,
+        // if user rejected cookies, or the server stored cookie will be used.
+        window.location.reload();
     }
 </script>
 
