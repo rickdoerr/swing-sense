@@ -6,6 +6,10 @@ import {
     toBodyFrame,
     type BodyFrame,
 } from "$lib/math/geometry";
+import { getContext } from "svelte";
+import type { Session } from "$lib/utils/session.svelte";
+import type { AgentRunRequest } from "$lib/types/adk-requests";
+import type { AgentRunSessionResponse, AgentTextPart } from "$lib/types/adk-responses";
 
 type ProcessingState = "idle" | "loading_model" | "processing" | "completed" | "stopped";
 
@@ -39,7 +43,12 @@ export class PoseAnalyst {
     addressImage = $state<string | null>(null);
     topOfSwingImage = $state<string | null>(null);
 
+    // Agent
+    agentAnalysis = $state<string | null>(null);
 
+    // Session Context
+    private sessionStore = getContext<{ current: Session }>("sessionState");
+    session = $derived(this.sessionStore.current);
 
     constructor() {
         if (typeof document !== "undefined") {
@@ -199,7 +208,68 @@ export class PoseAnalyst {
                 // metrics.topOfSwingFrame is a frame index, frame rate assumed 30fps
                 const tosTime = this.metrics.topOfSwingFrame / 30;
                 this.topOfSwingImage = await this.captureFrame(tosTime);
+
+                // Trigger agent analysis
+                this.runAgentAnalysis();
             }
+        }
+    }
+
+    async runAgentAnalysis() {
+        if (!this.metrics || !this.session) return;
+
+        this.agentAnalysis = "Analyzing swing...";
+
+        const agentRunRequest: AgentRunRequest = {
+            appName: this.session.agentAppName!,
+            userId: this.session.userId!,
+            sessionId: this.session.sessionId!,
+            newMessage: {
+                role: "user",
+                parts: [
+                    {
+                        text: `Please analyse the following swing metrics: Shoulder rotation ${this.metrics.shoulderRotation} and hip rotation ${this.metrics.hipRotation}`,
+                    },
+                ],
+            },
+        };
+
+        try {
+            const response = await fetch("/api/run", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(agentRunRequest),
+            });
+
+            if (!response.ok) {
+                console.error(
+                    "Agent run failed",
+                    response.status,
+                    response.statusText,
+                );
+                this.agentAnalysis = "Analysis failed.";
+                return;
+            }
+
+            const decodedResponse =
+                (await response.json()) as AgentRunSessionResponse[];
+
+            for (const event of decodedResponse.reverse()) {
+                if (event.content.role === "model") {
+                    const textPart = event.content.parts.find(
+                        (p) => "text" in p,
+                    );
+                    if (textPart && "text" in textPart) {
+                        this.agentAnalysis = (textPart as AgentTextPart).text;
+                        break;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error running agent", e);
+            this.agentAnalysis = "Error during analysis.";
         }
     }
 
@@ -234,6 +304,7 @@ export class PoseAnalyst {
         this.metrics = null;
         this.addressImage = null;
         this.topOfSwingImage = null;
+        this.agentAnalysis = null;
     }
     // Private
     private videoElem_: HTMLVideoElement | null = null;

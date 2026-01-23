@@ -41,6 +41,13 @@
                     />
                 </div>
             </div>
+            {#if analyst.agentAnalysis}
+                <div
+                    class="bg-theme-surface-subtle p-3 rounded-lg border border-theme-border text-xs text-theme-text-primary leading-relaxed"
+                >
+                    {analyst.agentAnalysis}
+                </div>
+            {/if}
         {/if}
     </div>
     <!-- Top of Swing Card -->
@@ -78,6 +85,13 @@
                     />
                 </div>
             </div>
+            {#if analyst.agentAnalysis}
+                <div
+                    class="bg-theme-surface-subtle p-3 rounded-lg border border-theme-border text-xs text-theme-text-primary leading-relaxed"
+                >
+                    {analyst.agentAnalysis}
+                </div>
+            {/if}
         {/if}
     </div>
 </div>

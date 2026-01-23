@@ -3,7 +3,6 @@
   import SplineGraph from "$lib/components/spline-graph.svelte";
   import MetricCard from "$lib/components/metric-card.svelte";
   import VelocityGraph from "$lib/components/velocity-graph.svelte";
-  import AgentCard from "$lib/components/agent-card.svelte";
   import PoseThumbnails from "$lib/components/pose-thumbnails.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
 
@@ -74,13 +73,6 @@
               label="X-Factor"
               value={analyst.metrics?.xFactor ?? null}
               unit="°"
-            />
-          </div>
-
-          <div class="mt-4">
-            <AgentCard
-              shoulderRotation={analyst.metrics?.shoulderRotation ?? null}
-              hipRotation={analyst.metrics?.hipRotation ?? null}
             />
           </div>
         </div>
