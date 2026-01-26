@@ -41,11 +41,11 @@
                     />
                 </div>
             </div>
-            {#if analyst.agentAnalysis}
+            {#if analyst.agentResponses["AddressAgent"]}
                 <div
                     class="bg-theme-surface-subtle p-3 rounded-lg border border-theme-border text-xs text-theme-text-primary leading-relaxed"
                 >
-                    {analyst.agentAnalysis}
+                    {analyst.agentResponses["AddressAgent"]}
                 </div>
             {/if}
         {/if}
@@ -85,11 +85,11 @@
                     />
                 </div>
             </div>
-            {#if analyst.agentAnalysis}
+            {#if analyst.agentResponses["TopOfSwingAgent"]}
                 <div
                     class="bg-theme-surface-subtle p-3 rounded-lg border border-theme-border text-xs text-theme-text-primary leading-relaxed"
                 >
-                    {analyst.agentAnalysis}
+                    {analyst.agentResponses["TopOfSwingAgent"]}
                 </div>
             {/if}
         {/if}

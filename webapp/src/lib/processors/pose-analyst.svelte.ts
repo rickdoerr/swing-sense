@@ -8,8 +8,8 @@ import {
 } from "$lib/math/geometry";
 import { getContext } from "svelte";
 import type { Session } from "$lib/utils/session.svelte";
-import type { AgentRunRequest } from "$lib/types/adk-requests";
-import type { AgentRunSessionResponse, AgentTextPart } from "$lib/types/adk-responses";
+import type { AgentRunRequest, AgentRunSSERequest } from "$lib/types/adk-requests";
+import type { AgentRunSessionResponse, AgentTextPart, AgentRunSSEResponse, AgentContentPart } from "$lib/types/adk-responses";
 
 type ProcessingState = "idle" | "loading_model" | "processing" | "completed" | "stopped";
 
@@ -45,6 +45,7 @@ export class PoseAnalyst {
 
     // Agent
     agentAnalysis = $state<string | null>(null);
+    agentResponses = $state<Record<string, string>>({});
 
     // Session Context
     private sessionStore = getContext<{ current: Session }>("sessionState");
@@ -210,7 +211,8 @@ export class PoseAnalyst {
                 this.topOfSwingImage = await this.captureFrame(tosTime);
 
                 // Trigger agent analysis
-                this.runAgentAnalysis();
+                //this.runAgentAnalysis();
+                this.runAgentSSEAnalysis();
             }
         }
     }
@@ -270,6 +272,113 @@ export class PoseAnalyst {
         } catch (e) {
             console.error("Error running agent", e);
             this.agentAnalysis = "Error during analysis.";
+        }
+    }
+
+    async runAgentSSEAnalysis() {
+        if (!this.metrics || !this.session || !this.addressImage || !this.topOfSwingImage) return;
+
+        console.log("Starting SSE Agent Run...");
+
+        const cleanBase64 = (dataUrl: string) => dataUrl.split(",")[1];
+
+        const request: AgentRunSSERequest = {
+            appName: this.session.appName!,
+            userId: this.session.userId!,
+            sessionId: this.session.sessionId!,
+            newMessage: {
+                role: "user",
+                parts: [
+                    {
+                        text: "Analyse the address position of the golf swing."
+                    },
+                    {
+                        inlineData: {
+                            displayName: "address_position.jpg",
+                            data: cleanBase64(this.addressImage),
+                            mimeType: "image/jpeg"
+                        }
+                    },
+                    {
+                        text: `Please analyse the following swing metrics: Shoulder rotation ${this.metrics.shoulderRotation} and hip rotation ${this.metrics.hipRotation}`
+                    },
+                    {
+                        inlineData: {
+                            displayName: "top_of_swing.jpg",
+                            data: cleanBase64(this.topOfSwingImage),
+                            mimeType: "image/jpeg"
+                        }
+                    }
+                ]
+            },
+            streaming: false
+        };
+
+        try {
+            const response = await fetch("/api/run_sse", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                console.error(
+                    "Agent SSE run failed",
+                    response.status,
+                    response.statusText,
+                );
+                return;
+            }
+
+            if (!response.body) {
+                console.error("No response body");
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || ""; // Keep incomplete line
+
+                for (const line of lines) {
+                    if (line.trim().startsWith("data: ")) {
+                        const jsonStr = line.trim().slice(6);
+                        try {
+                            const data = JSON.parse(jsonStr) as AgentRunSSEResponse;
+                            console.log("SSE Data:", data);
+
+                            // Process text parts if available (updating UI similar to runAgentAnalysis)
+                            if (data.content.role === "model") {
+                                const textPart = data.content.parts.find(
+                                    (p: AgentContentPart) => "text" in p,
+                                );
+                                if (textPart && "text" in textPart) {
+                                    if (data.author) {
+                                        this.agentResponses[data.author] = (textPart as AgentTextPart).text;
+                                    }
+                                    // TODO remove along with the call to /run
+                                    this.agentAnalysis = (textPart as AgentTextPart).text;
+                                }
+                            }
+
+                        } catch (e) {
+                            console.error("Error parsing SSE JSON", e);
+                        }
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error("Error running agent SSE", e);
         }
     }
 

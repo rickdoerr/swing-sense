@@ -51,3 +51,20 @@ export interface AgentFunctionResponsePart {
 export interface AgentTextPart {
     text: string;
 }
+
+export interface AgentRunSSEResponse {
+    content: {
+        parts: AgentContentPart[];
+        role: "model" | "user";
+    };
+    invocationId: string;
+    author: string;
+    actions: {
+        stateDelta: Record<string, unknown>;
+        artifactDelta: Record<string, unknown>;
+        requestedAuthConfigs: Record<string, unknown>;
+    };
+    longRunningToolIds?: string[];
+    id: string;
+    timestamp: number;
+}
