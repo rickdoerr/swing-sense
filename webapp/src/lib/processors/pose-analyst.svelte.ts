@@ -221,7 +221,7 @@ export class PoseAnalyst {
         this.agentAnalysis = "Analyzing swing...";
 
         const agentRunRequest: AgentRunRequest = {
-            appName: this.session.agentAppName!,
+            appName: this.session.appName!,
             userId: this.session.userId!,
             sessionId: this.session.sessionId!,
             newMessage: {

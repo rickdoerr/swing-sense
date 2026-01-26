@@ -15,7 +15,6 @@
 
 	onMount(() => {
 		sessionStore.current.sync(data);
-		sessionStore.current.create();
 	});
 </script>
 

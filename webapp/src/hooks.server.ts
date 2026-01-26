@@ -20,7 +20,7 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
     // if the user has rejected cookies, leave as null
     // /api/session handles a null state and creates a userID just for this session
 
-    event.locals.session = session?.session || null;
+    event.locals.userSession = session?.session || null;
     event.locals.user = session?.user || null;
 
     // Consent Logic

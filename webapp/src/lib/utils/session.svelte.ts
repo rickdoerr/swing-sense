@@ -11,10 +11,10 @@ export class Session {
         this.consentStatus_ = data.consent;
         this.userId_ = data.resolvedUserId || undefined;
         // Only overwrite if server provides a value, preserving client-side created sessions
-        if (data.agentSessionId) {
-            this.sessionId_ = data.agentSessionId;
+        if (data.sessionId) {
+            this.sessionId_ = data.sessionId;
         }
-        this.agentAppName_ = data.agentAppName;
+        this.appName_ = data.appName;
     }
 
     async setConsent(accepted: boolean) {
@@ -30,8 +30,9 @@ export class Session {
         });
     }
 
-    async create() {
-        if (this.sessionId_) return;
+    async refresh() {
+        // Force creation of a new session
+
 
         try {
             const res = await fetch("/api/session", { method: "POST" });
@@ -62,13 +63,13 @@ export class Session {
         return this.userId_;
     }
 
-    get agentAppName(): string | undefined {
-        return this.agentAppName_;
+    get appName(): string | undefined {
+        return this.appName_;
     }
 
     setSessionInfo(sessionId: string, appName: string) {
         this.sessionId_ = sessionId;
-        this.agentAppName_ = appName;
+        this.appName_ = appName;
     }
 
     setUserId(userId: string) {
@@ -78,5 +79,5 @@ export class Session {
     private consentStatus_ = $state<ConsentStatus>('unknown');
     private sessionId_ = $state<string | undefined>();
     private userId_ = $state<string | undefined>();
-    private agentAppName_ = $state<string | undefined>();
+    private appName_ = $state<string | undefined>();
 }
