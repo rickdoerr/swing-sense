@@ -106,7 +106,7 @@ export class SwingMetrics {
         }
 
         // 2. Detect Impact
-        this.impactFrame_ = detectImpact(this.trajectory_, this.topOfSwingFrame_);
+        this.impactFrame_ = detectImpact(this.trajectory_, normalizedFrames, this.topOfSwingFrame_);
 
         // 3. Classify Shot
         const classifications = classifyShot(normalizedFrames, this.impactFrame_, addressPose);
