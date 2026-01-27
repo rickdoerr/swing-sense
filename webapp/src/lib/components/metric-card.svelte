@@ -5,7 +5,7 @@
 		unit = "°",
 	}: {
 		label: string;
-		value: number | null;
+		value: number | string | null;
 		unit?: string;
 	} = $props();
 </script>
@@ -23,7 +23,10 @@
 
 	<div class="flex items-baseline gap-1">
 		{#if value !== null}
-			<span class="text-[2rem] font-bold text-theme-accent leading-none"
+			<span
+				class="{typeof value === 'string'
+					? 'text-lg'
+					: 'text-[2rem]'} font-bold text-theme-accent leading-none"
 				>{value}</span
 			>
 			<span class="text-base text-theme-text-secondary">{unit}</span>

@@ -1,6 +1,6 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import * as THREE from "three";
-import { SwingMetrics, type SwingTrajectoryPoint } from "$lib/metrics/swing-metrics";
+import { SwingMetrics, type SwingTrajectoryPoint, type SwingMetricsResult } from "$lib/metrics/swing-metrics";
 import {
     buildBodyFrame,
     toBodyFrame,
@@ -30,18 +30,12 @@ export class PoseAnalyst {
     );
 
     // Metrics
-    metrics = $state<{
-        shoulderRotation: number;
-        hipRotation: number;
-        xFactor: number;
-        topOfSwingFrame: number;
-        addressShoulderAngle: number;
-        trajectory: SwingTrajectoryPoint[];
-    } | null>(null);
+    metrics = $state<SwingMetricsResult | null>(null);
 
     // Thumbnails
     addressImage = $state<string | null>(null);
     topOfSwingImage = $state<string | null>(null);
+    downswingImages = $state<string[]>([]);
 
     // Agent
     agentAnalysis = $state<string | null>(null);
@@ -210,6 +204,14 @@ export class PoseAnalyst {
                 const tosTime = this.metrics.topOfSwingFrame / 30;
                 this.topOfSwingImage = await this.captureFrame(tosTime);
 
+                // Capture downswing sequence
+                this.downswingImages = [];
+                for (const frameIdx of this.metrics.downswingSequence) {
+                    const time = frameIdx / 30;
+                    const img = await this.captureFrame(time);
+                    if (img) this.downswingImages.push(img);
+                }
+
                 // Trigger agent analysis
                 //this.runAgentAnalysis();
                 this.runAgentSSEAnalysis();
@@ -230,7 +232,12 @@ export class PoseAnalyst {
                 role: "user",
                 parts: [
                     {
-                        text: `Please analyse the following swing metrics: Shoulder rotation ${this.metrics.shoulderRotation} and hip rotation ${this.metrics.hipRotation}`,
+                        text: `Please analyse the following swing metrics: 
+                        Shoulder rotation: ${this.metrics.shoulderRotation} deg
+                        Hip rotation: ${this.metrics.hipRotation} deg
+                        Shot Classification: ${this.metrics.shotClassification.join(', ')}
+                        Impact Frame: ${this.metrics.impactFrame}
+                        `,
                     },
                 ],
             },
@@ -300,7 +307,11 @@ export class PoseAnalyst {
                         }
                     },
                     {
-                        text: `Please analyse the following swing metrics: Shoulder rotation ${this.metrics.shoulderRotation} and hip rotation ${this.metrics.hipRotation}`
+                        text: `Please analyse the following swing metrics: 
+                        Shoulder rotation: ${this.metrics.shoulderRotation} deg
+                        Hip rotation: ${this.metrics.hipRotation} deg
+                        Shot Classification: ${this.metrics.shotClassification.join(', ')}
+                        `
                     },
                     {
                         inlineData: {
@@ -413,6 +424,7 @@ export class PoseAnalyst {
         this.metrics = null;
         this.addressImage = null;
         this.topOfSwingImage = null;
+        this.downswingImages = [];
         this.agentAnalysis = null;
     }
     // Private

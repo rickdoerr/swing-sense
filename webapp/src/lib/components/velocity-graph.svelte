@@ -9,8 +9,12 @@
     let {
         trajectory = [],
         detectedFrame = 0,
-    }: { trajectory?: SwingTrajectoryPoint[]; detectedFrame?: number } =
-        $props();
+        impactFrame = -1,
+    }: {
+        trajectory?: SwingTrajectoryPoint[];
+        detectedFrame?: number;
+        impactFrame?: number;
+    } = $props();
 
     let canvasElement: HTMLCanvasElement;
     let threeScene: ThreeScene | null = null;
@@ -43,7 +47,7 @@
 
     $effect(() => {
         if (velocityTracker && threeScene && trajectory.length > 0) {
-            velocityTracker.update(trajectory, detectedFrame);
+            velocityTracker.update(trajectory, detectedFrame, impactFrame);
             threeScene
                 .getRenderer()
                 .render(threeScene.getScene(), threeScene.getCamera());

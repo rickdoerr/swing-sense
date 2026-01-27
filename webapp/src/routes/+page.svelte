@@ -4,6 +4,8 @@
   import MetricCard from "$lib/components/metric-card.svelte";
   import VelocityGraph from "$lib/components/velocity-graph.svelte";
   import PoseThumbnails from "$lib/components/pose-thumbnails.svelte";
+  import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
+  import RotationDial from "$lib/components/rotation-dial.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
 
   const analyst = new PoseAnalyst();
@@ -46,6 +48,7 @@
         <div class="mt-4">
           <div class="mt-4">
             <PoseThumbnails {analyst} />
+            <SwingThumbnails {analyst} />
           </div>
         </div>
 
@@ -58,7 +61,7 @@
             </h3>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <MetricCard
               label="Shoulder Rotation"
               value={analyst.metrics?.shoulderRotation ?? null}
@@ -73,6 +76,11 @@
               label="X-Factor"
               value={analyst.metrics?.xFactor ?? null}
               unit="°"
+            />
+            <MetricCard
+              label="Shot Type"
+              value={analyst.metrics?.shotClassification.join(", ") ?? "-"}
+              unit=""
             />
           </div>
         </div>
@@ -89,6 +97,7 @@
               <VelocityGraph
                 trajectory={analyst.metrics.trajectory}
                 detectedFrame={analyst.metrics.topOfSwingFrame}
+                impactFrame={analyst.metrics.impactFrame}
               />
             {:else}
               <div
@@ -105,6 +114,7 @@
               >Left Wrist Velocity</span
             >
             <span class="text-theme-highlight font-medium">Top of Swing</span>
+            <span class="text-red-500 font-medium">Impact</span>
           </div>
         </div>
       </section>
