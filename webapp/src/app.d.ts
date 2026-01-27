@@ -10,6 +10,8 @@ declare global {
 			consent: 'accepted' | 'rejected' | 'pending';
 			sessionId?: string;
 			appName?: string;
+			agentSessionId?: string;
+			agentAppName?: string;
 			resolvedUserId: string;
 		}
 		interface PageData {
@@ -19,6 +21,8 @@ declare global {
 			consent: 'accepted' | 'rejected' | 'pending';
 			sessionId?: string;
 			appName?: string;
+			agentSessionId?: string;
+			agentAppName?: string;
 			resolvedUserId: string;
 		}
 		// interface PageState {}

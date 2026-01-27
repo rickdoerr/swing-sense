@@ -4,6 +4,8 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { sequence } from '@sveltejs/kit/hooks';
 import type { Handle } from '@sveltejs/kit';
 
+import { createAgentSession } from '$lib/server/agent-session';
+
 const authHandle: Handle = async ({ event, resolve }) => {
     return svelteKitHandler({ event, resolve, auth, building });
 };
@@ -49,6 +51,20 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 
     event.locals.resolvedUserId = resolvedUserId;
     event.locals.anonymousId = anonymousId;
+
+    // Only create session for page navigation
+    if (event.request.method === 'GET' &&
+        !event.url.pathname.startsWith('/api') &&
+        !event.url.pathname.includes('.')) {
+
+        try {
+            const sessionData = await createAgentSession(resolvedUserId);
+            event.locals.agentSessionId = sessionData.id;
+            event.locals.agentAppName = sessionData.appName;
+        } catch (e) {
+            console.error("Failed to bootstrap agent session", e);
+        }
+    }
 
     const response = await resolve(event);
 
