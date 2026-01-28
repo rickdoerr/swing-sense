@@ -10,25 +10,7 @@ export interface AgentCreateSessionResponse {
     lastUpdateTime: number;
 }
 
-/*
-    Agent run request response.
-*/
-export interface AgentRunSessionResponse {
-    content: {
-        parts: AgentContentPart[];
-        role: "model" | "user";
-    };
-    invocationId: string;
-    author: string;
-    actions: {
-        stateDelta: Record<string, unknown>;
-        artifactDelta: Record<string, unknown>;
-        requestedAuthConfigs: Record<string, unknown>;
-    };
-    longRunningToolIds?: string[];
-    id: string;
-    timestamp: number;
-}
+
 
 export type AgentContentPart = AgentFunctionCallPart | AgentFunctionResponsePart | AgentTextPart;
 

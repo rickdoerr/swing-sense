@@ -1,15 +1,15 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
-import type { AgentRunRequest } from '$lib/types/adk-requests';
+import type { AgentRunSSERequest } from '$lib/types/adk-requests';
 
 export const POST: RequestHandler = async ({ request }) => {
     const baseURL = env.AGENT_BASE_URL || 'http://127.0.0.1:8000';
 
-    let clientRequest: AgentRunRequest;
+    let clientRequest: AgentRunSSERequest;
 
     try {
-        clientRequest = (await request.json()) as AgentRunRequest;
+        clientRequest = (await request.json()) as AgentRunSSERequest;
     } catch {
         throw error(400, 'Invalid JSON in request body!');
     }

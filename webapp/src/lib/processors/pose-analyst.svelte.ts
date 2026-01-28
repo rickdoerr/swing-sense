@@ -8,8 +8,8 @@ import {
 } from "$lib/math/geometry";
 import { getContext } from "svelte";
 import type { Session } from "$lib/utils/session.svelte";
-import type { AgentRunRequest, AgentRunSSERequest } from "$lib/types/adk-requests";
-import type { AgentRunSessionResponse, AgentTextPart, AgentRunSSEResponse, AgentContentPart } from "$lib/types/adk-responses";
+import type { AgentRunSSERequest } from "$lib/types/adk-requests";
+import type { AgentRunSSEResponse, AgentTextPart, AgentContentPart } from "$lib/types/adk-responses";
 
 type ProcessingState = "idle" | "loading_model" | "processing" | "completed" | "stopped";
 
@@ -38,7 +38,6 @@ export class PoseAnalyst {
     downswingImages = $state<string[]>([]);
 
     // Agent
-    agentAnalysis = $state<string | null>(null);
     agentResponses = $state<Record<string, string>>({});
 
     // Session Context
@@ -213,74 +212,12 @@ export class PoseAnalyst {
                 }
 
                 // Trigger agent analysis
-                //this.runAgentAnalysis();
                 this.runAgentSSEAnalysis();
             }
         }
     }
 
-    async runAgentAnalysis() {
-        if (!this.metrics || !this.session) return;
 
-        this.agentAnalysis = "Analyzing swing...";
-
-        const agentRunRequest: AgentRunRequest = {
-            appName: this.session.appName!,
-            userId: this.session.userId!,
-            sessionId: this.session.sessionId!,
-            newMessage: {
-                role: "user",
-                parts: [
-                    {
-                        text: `Please analyse the following swing metrics: 
-                        Shoulder rotation: ${this.metrics.shoulderRotation} deg
-                        Hip rotation: ${this.metrics.hipRotation} deg
-                        Shot Classification: ${this.metrics.shotClassification.join(', ')}
-                        Impact Frame: ${this.metrics.impactFrame}
-                        `,
-                    },
-                ],
-            },
-        };
-
-        try {
-            const response = await fetch("/api/run", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(agentRunRequest),
-            });
-
-            if (!response.ok) {
-                console.error(
-                    "Agent run failed",
-                    response.status,
-                    response.statusText,
-                );
-                this.agentAnalysis = "Analysis failed.";
-                return;
-            }
-
-            const decodedResponse =
-                (await response.json()) as AgentRunSessionResponse[];
-
-            for (const event of decodedResponse.reverse()) {
-                if (event.content.role === "model") {
-                    const textPart = event.content.parts.find(
-                        (p) => "text" in p,
-                    );
-                    if (textPart && "text" in textPart) {
-                        this.agentAnalysis = (textPart as AgentTextPart).text;
-                        break;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Error running agent", e);
-            this.agentAnalysis = "Error during analysis.";
-        }
-    }
 
     async runAgentSSEAnalysis() {
 
@@ -387,8 +324,7 @@ export class PoseAnalyst {
                                     if (data.author) {
                                         this.agentResponses[data.author] = (textPart as AgentTextPart).text;
                                     }
-                                    // TODO remove along with the call to /run
-                                    this.agentAnalysis = (textPart as AgentTextPart).text;
+
                                 }
                             }
 
@@ -436,7 +372,7 @@ export class PoseAnalyst {
         this.addressImage = null;
         this.topOfSwingImage = null;
         this.downswingImages = [];
-        this.agentAnalysis = null;
+
         this.agentResponses = {};
     }
     // Private
