@@ -283,9 +283,10 @@ export class PoseAnalyst {
     }
 
     async runAgentSSEAnalysis() {
-        if (!this.metrics || !this.session || !this.addressImage || !this.topOfSwingImage) return;
 
-        console.log("Starting SSE Agent Run...");
+        // TODO this is a bit ugly
+        const impactImage = this.downswingImages.at(-1);
+        if (!this.metrics || !this.session || !this.addressImage || !this.topOfSwingImage || !impactImage) return;
 
         const cleanBase64 = (dataUrl: string) => dataUrl.split(",")[1];
 
@@ -310,7 +311,6 @@ export class PoseAnalyst {
                         text: `Please analyse the following swing metrics: 
                         Shoulder rotation: ${this.metrics.shoulderRotation} deg
                         Hip rotation: ${this.metrics.hipRotation} deg
-                        Shot Classification: ${this.metrics.shotClassification.join(', ')}
                         `
                     },
                     {
@@ -319,7 +319,19 @@ export class PoseAnalyst {
                             data: cleanBase64(this.topOfSwingImage),
                             mimeType: "image/jpeg"
                         }
-                    }
+                    },
+                    {
+                        text: `Please analyse the golfer's swing at the point of impact between
+                        the golf club and ball. 
+                        `
+                    },
+                    {
+                        inlineData: {
+                            displayName: "impact.jpg",
+                            data: cleanBase64(impactImage),
+                            mimeType: "image/jpeg"
+                        }
+                    },
                 ]
             },
             streaming: false
@@ -365,7 +377,6 @@ export class PoseAnalyst {
                         const jsonStr = line.trim().slice(6);
                         try {
                             const data = JSON.parse(jsonStr) as AgentRunSSEResponse;
-                            console.log("SSE Data:", data);
 
                             // Process text parts if available (updating UI similar to runAgentAnalysis)
                             if (data.content.role === "model") {

@@ -7,7 +7,7 @@ import google.genai.types as types
 
 class AddressAnalysis(BaseModel):
     address_image: types.Blob = Field(
-        description="The image of the golfer at address.",
+        description="An image of the golfer at address pose.",
         alias="address_position.jpg" 
     )
 
@@ -15,6 +15,12 @@ class TopOfSwingAnalysis(BaseModel):
     shoulder_rotation: float = Field(description="Calculated shoulder rotation in degrees")
     hip_rotation: float = Field(description="Calculated hip rotation in degrees")
     top_of_swing_image: types.Blob = Field(
-        description="The image of the golfer at the top of the swing.",
+        description="An image of the golfer at the top of the swing.",
         alias="top_of_swing.jpg"
+    )
+
+class ImpactAnalysis(BaseModel):
+    top_of_swing_image: types.Blob = Field(
+        description="An image of the golfer around the time of impact between golf club and ball.",
+        alias="impact.jpg"
     )

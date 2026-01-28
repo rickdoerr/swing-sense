@@ -8,19 +8,15 @@
     <!-- Render Downswing Sequence -->
     {#each analyst.downswingImages as image, i}
         <div
-            class="bg-theme-surface border border-theme-border rounded-xl p-2 flex flex-col gap-2 shadow-md"
+            class="bg-theme-surface border border-theme-border rounded-xl p-2 flex flex-col gap-2 shadow-md relative"
         >
             <h4
                 class="text-[10px] font-semibold uppercase tracking-wider text-theme-text-secondary m-0"
             >
-                {#if i === 0}
-                    Mid-Downswing 1
-                {:else if i === 1}
-                    Mid-Downswing 2
-                {:else if i === 2}
+                {#if i === analyst.downswingImages.length - 1}
                     Impact
                 {:else}
-                    Frame {i + 1}
+                    Mid-Downswing {i + 1}
                 {/if}
             </h4>
             <div
@@ -39,6 +35,19 @@
         </div>
     {/each}
 </div>
+
+{#if analyst.agentResponses["ImpactAnalysisAgent"]}
+    <div class="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+        <h4
+            class="text-[10px] font-semibold uppercase tracking-wider text-blue-400 m-0 mb-1"
+        >
+            Impact Analysis
+        </h4>
+        <p class="text-xs text-blue-200 leading-relaxed">
+            {analyst.agentResponses["ImpactAnalysisAgent"]}
+        </p>
+    </div>
+{/if}
 
 {#if analyst.downswingImages.length === 0}
     <div

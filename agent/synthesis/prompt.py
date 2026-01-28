@@ -10,4 +10,7 @@ Example: "Setup is solid, but limited hip turn at the top is restricting power."
 
 *   **Top of Swing Analysis:**
     {top_of_swing_analysis_result}
+
+*   **Impact Analysis:**
+    {impact_analysis_result}
 """

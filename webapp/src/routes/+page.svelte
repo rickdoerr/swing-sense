@@ -5,6 +5,7 @@
   import VelocityGraph from "$lib/components/velocity-graph.svelte";
   import PoseThumbnails from "$lib/components/pose-thumbnails.svelte";
   import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
+  import SwingSummary from "$lib/components/swing-summary.svelte";
   import RotationDial from "$lib/components/rotation-dial.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
 
@@ -49,6 +50,9 @@
           <div class="mt-4">
             <PoseThumbnails {analyst} />
             <SwingThumbnails {analyst} />
+            <div class="mt-4">
+              <SwingSummary {analyst} />
+            </div>
           </div>
         </div>
 
