@@ -4,6 +4,8 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { sequence } from '@sveltejs/kit/hooks';
 import type { Handle } from '@sveltejs/kit';
 
+import { createAgentSession } from '$lib/server/agent-session';
+
 const authHandle: Handle = async ({ event, resolve }) => {
     return svelteKitHandler({ event, resolve, auth, building });
 };
@@ -20,7 +22,7 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
     // if the user has rejected cookies, leave as null
     // /api/session handles a null state and creates a userID just for this session
 
-    event.locals.session = session?.session || null;
+    event.locals.userSession = session?.session || null;
     event.locals.user = session?.user || null;
 
     // Consent Logic
@@ -32,32 +34,47 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
     }
 
     // Identity Resolution
-    // 1. Authenticated User
-    // 2. Existing Anonymous Cookie
-    // 3. New Anonymous ID
-    let resolvedUserId = event.locals.user?.id;
+    // 1. Authenticated User (from event.locals.user)
+    // 2. Anonymous ID (from cookie or new)
 
-    if (!resolvedUserId) {
-        const cookieId = event.cookies.get('gu_id');
-        if (cookieId) {
-            resolvedUserId = cookieId;
-        } else {
-            resolvedUserId = crypto.randomUUID();
-        }
+    // ALWAYS resolve an anonymous ID, even if logged in.
+    // This ensures we have a persistent device ID available.
+    let anonymousId = event.cookies.get('gu_id');
+    if (!anonymousId) {
+        anonymousId = crypto.randomUUID();
     }
 
+    // resolvedUserId is the "active" ID for this request.
+    // If logged in, use Auth ID.
+    // If not logged in, use Anonymous ID.
+    let resolvedUserId = event.locals.user?.id || anonymousId;
+
     event.locals.resolvedUserId = resolvedUserId;
-    event.locals.anonymousId = !event.locals.user ? resolvedUserId : null;
+    event.locals.anonymousId = anonymousId;
+
+    // Only create session for page navigation
+    if (event.request.method === 'GET' &&
+        !event.url.pathname.startsWith('/api') &&
+        !event.url.pathname.includes('.')) {
+
+        try {
+            const sessionData = await createAgentSession(resolvedUserId);
+            event.locals.agentSessionId = sessionData.id;
+            event.locals.agentAppName = sessionData.appName;
+        } catch (e) {
+            console.error("Failed to bootstrap agent session", e);
+        }
+    }
 
     const response = await resolve(event);
 
     // Persist Anonymous ID if allowed
     // Only set the cookie if:
-    // 1. We have a "new" anonymous ID that needs saving (or we want to refresh an existing one)
-    // 2. Consent is explicitly ACCEPTED
-    // 3. The user is NOT authenticated (auth handles its own session)
-    if (!event.locals.user && event.locals.consent === 'accepted') {
-        response.headers.append('set-cookie', event.cookies.serialize('gu_id', resolvedUserId, {
+    // 1. Consent is explicitly ACCEPTED
+    // 2. We want to ensure the anonymous ID persists, even if the user is currently logged in.
+    //    This allows the user to log out and return to their specific anonymous session.
+    if (event.locals.consent === 'accepted') {
+        response.headers.append('set-cookie', event.cookies.serialize('gu_id', anonymousId, {
             path: '/',
             httpOnly: true,
             sameSite: 'lax',

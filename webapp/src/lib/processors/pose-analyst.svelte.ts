@@ -1,11 +1,15 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import * as THREE from "three";
-import { SwingMetrics, type SwingTrajectoryPoint } from "$lib/metrics/swing-metrics";
+import { SwingMetrics, type SwingTrajectoryPoint, type SwingMetricsResult } from "$lib/metrics/swing-metrics";
 import {
     buildBodyFrame,
     toBodyFrame,
     type BodyFrame,
 } from "$lib/math/geometry";
+import { getContext } from "svelte";
+import type { Session } from "$lib/utils/session.svelte";
+import type { AgentRunSSERequest } from "$lib/types/adk-requests";
+import type { AgentRunSSEResponse, AgentTextPart, AgentContentPart } from "$lib/types/adk-responses";
 
 type ProcessingState = "idle" | "loading_model" | "processing" | "completed" | "stopped";
 
@@ -26,20 +30,19 @@ export class PoseAnalyst {
     );
 
     // Metrics
-    metrics = $state<{
-        shoulderRotation: number;
-        hipRotation: number;
-        xFactor: number;
-        topOfSwingFrame: number;
-        addressShoulderAngle: number;
-        trajectory: SwingTrajectoryPoint[];
-    } | null>(null);
+    metrics = $state<SwingMetricsResult | null>(null);
 
     // Thumbnails
     addressImage = $state<string | null>(null);
     topOfSwingImage = $state<string | null>(null);
+    downswingImages = $state<string[]>([]);
 
+    // Agent
+    agentResponses = $state<Record<string, string>>({});
 
+    // Session Context
+    private sessionStore = getContext<{ current: Session }>("sessionState");
+    session = $derived(this.sessionStore.current);
 
     constructor() {
         if (typeof document !== "undefined") {
@@ -199,7 +202,141 @@ export class PoseAnalyst {
                 // metrics.topOfSwingFrame is a frame index, frame rate assumed 30fps
                 const tosTime = this.metrics.topOfSwingFrame / 30;
                 this.topOfSwingImage = await this.captureFrame(tosTime);
+
+                // Capture downswing sequence
+                this.downswingImages = [];
+                for (const frameIdx of this.metrics.downswingSequence) {
+                    const time = frameIdx / 30;
+                    const img = await this.captureFrame(time);
+                    if (img) this.downswingImages.push(img);
+                }
+
+                // Trigger agent analysis
+                this.runAgentSSEAnalysis();
             }
+        }
+    }
+
+
+
+    async runAgentSSEAnalysis() {
+
+        // TODO this is a bit ugly
+        const impactImage = this.downswingImages.at(-1);
+        if (!this.metrics || !this.session || !this.addressImage || !this.topOfSwingImage || !impactImage) return;
+
+        const cleanBase64 = (dataUrl: string) => dataUrl.split(",")[1];
+
+        const request: AgentRunSSERequest = {
+            appName: this.session.appName!,
+            userId: this.session.userId!,
+            sessionId: this.session.sessionId!,
+            newMessage: {
+                role: "user",
+                parts: [
+                    {
+                        text: "Analyse the address position of the golf swing."
+                    },
+                    {
+                        inlineData: {
+                            displayName: "address_position.jpg",
+                            data: cleanBase64(this.addressImage),
+                            mimeType: "image/jpeg"
+                        }
+                    },
+                    {
+                        text: `Please analyse the following swing metrics: 
+                        Shoulder rotation: ${this.metrics.shoulderRotation} deg
+                        Hip rotation: ${this.metrics.hipRotation} deg
+                        `
+                    },
+                    {
+                        inlineData: {
+                            displayName: "top_of_swing.jpg",
+                            data: cleanBase64(this.topOfSwingImage),
+                            mimeType: "image/jpeg"
+                        }
+                    },
+                    {
+                        text: `Please analyse the golfer's swing at the point of impact between
+                        the golf club and ball. 
+                        `
+                    },
+                    {
+                        inlineData: {
+                            displayName: "impact.jpg",
+                            data: cleanBase64(impactImage),
+                            mimeType: "image/jpeg"
+                        }
+                    },
+                ]
+            },
+            streaming: false
+        };
+
+        try {
+            const response = await fetch("/api/run_sse", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                console.error(
+                    "Agent SSE run failed",
+                    response.status,
+                    response.statusText,
+                );
+                return;
+            }
+
+            if (!response.body) {
+                console.error("No response body");
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || ""; // Keep incomplete line
+
+                for (const line of lines) {
+                    if (line.trim().startsWith("data: ")) {
+                        const jsonStr = line.trim().slice(6);
+                        try {
+                            const data = JSON.parse(jsonStr) as AgentRunSSEResponse;
+
+                            // Process text parts if available (updating UI similar to runAgentAnalysis)
+                            if (data.content.role === "model") {
+                                const textPart = data.content.parts.find(
+                                    (p: AgentContentPart) => "text" in p,
+                                );
+                                if (textPart && "text" in textPart) {
+                                    if (data.author) {
+                                        this.agentResponses[data.author] = (textPart as AgentTextPart).text;
+                                    }
+
+                                }
+                            }
+
+                        } catch (e) {
+                            console.error("Error parsing SSE JSON", e);
+                        }
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error("Error running agent SSE", e);
         }
     }
 
@@ -234,6 +371,9 @@ export class PoseAnalyst {
         this.metrics = null;
         this.addressImage = null;
         this.topOfSwingImage = null;
+        this.downswingImages = [];
+
+        this.agentResponses = {};
     }
     // Private
     private videoElem_: HTMLVideoElement | null = null;

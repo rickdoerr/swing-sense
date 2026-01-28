@@ -24,7 +24,7 @@
     }: {
         shoulderAngle?: number;
         hipAngle?: number;
-        variant?: "address" | "top";
+        variant?: "address" | "top" | "loading";
     } = $props();
 
     const SIZE = 200;
@@ -250,7 +250,7 @@
                     stroke-dasharray="2 2"
                 />
             {/if}
-        {:else}
+        {:else if variant === "top"}
             <!-- === TOP OF SWING (X-FACTOR) === -->
 
             <!-- Ideal Wedge (Light Orange) -->
@@ -338,64 +338,119 @@
             />
         {/if}
 
-        <!-- Center Pivot -->
-        <circle cx={CENTER} cy={CENTER} r="3" fill="#e2e8f0" stroke="none" />
+        {#if variant === "loading"}
+            <!-- === LOADING SPINNER === -->
+            <circle
+                cx={CENTER}
+                cy={CENTER}
+                r={RADIUS}
+                fill="none"
+                stroke="#e2e8f0"
+                stroke-width="4"
+                stroke-opacity="0.1"
+            />
+            <path
+                d={describeArc(CENTER, CENTER, RADIUS, 0, 90)}
+                fill="none"
+                stroke="#3b82f6"
+                stroke-width="4"
+                stroke-linecap="round"
+            >
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="0 {CENTER} {CENTER}"
+                    to="360 {CENTER} {CENTER}"
+                    dur="1s"
+                    repeatCount="indefinite"
+                />
+            </path>
+            <!-- Pulse Effect in Center -->
+            <circle cx={CENTER} cy={CENTER} r="6" fill="#3b82f6">
+                <animate
+                    attributeName="r"
+                    values="6;10;6"
+                    dur="2s"
+                    repeatCount="indefinite"
+                />
+                <animate
+                    attributeName="opacity"
+                    values="1;0.5;1"
+                    dur="2s"
+                    repeatCount="indefinite"
+                />
+            </circle>
+        {/if}
+
+        <!-- Center Pivot (Standard) -->
+        {#if variant !== "loading"}
+            <circle
+                cx={CENTER}
+                cy={CENTER}
+                r="3"
+                fill="#e2e8f0"
+                stroke="none"
+            />
+        {/if}
     </svg>
 
     <!-- UNIFIED LABELS SECTION -->
-    <div class="mt-2 flex flex-col items-center gap-1 min-h-[60px] w-full">
-        <div class="flex items-baseline gap-1.5">
-            <span
-                class="text-xs text-slate-400 font-bold tracking-wider uppercase"
+    {#if variant !== "loading"}
+        <div class="mt-2 flex flex-col items-center gap-1 min-h-[60px] w-full">
+            <div class="flex items-baseline gap-1.5">
+                <span
+                    class="text-xs text-theme-text-secondary font-bold tracking-wider uppercase"
+                >
+                    {variant === "address" ? "Deviation" : "X-Factor"}
+                </span>
+                <span class="text-xl font-black" style="color: {status.color}">
+                    {status.value}°
+                </span>
+            </div>
+
+            <div
+                class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-white/5 border border-white/10"
+                style="color: {status.color}"
             >
-                {variant === "address" ? "Deviation" : "X-Factor"}
-            </span>
-            <span class="text-xl font-black" style="color: {status.color}">
-                {status.value}°
-            </span>
-        </div>
+                {status.label}
+            </div>
 
-        <div
-            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-white/5 border border-white/10"
-            style="color: {status.color}"
-        >
-            {status.label}
+            <!-- Legend Dots -->
+            <div
+                class="flex gap-3 text-[9px] mt-2 uppercase font-bold tracking-wider text-theme-text-secondary"
+            >
+                {#if variant === "address"}
+                    <div class="flex items-center gap-1">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full bg-theme-text-secondary opacity-50"
+                        ></div>
+                        Feet
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full"
+                            style="background-color: {status.color}"
+                        ></div>
+                        Shoulders
+                    </div>
+                {:else}
+                    <div class="flex items-center gap-1">
+                        <div
+                            class="w-1.5 h-1.5 rounded-full bg-theme-text-secondary opacity-50"
+                        ></div>
+                        Feet
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                        Hip
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-lime-400"></div>
+                        Shoulders
+                    </div>
+                {/if}
+            </div>
         </div>
-
-        <!-- Legend Dots -->
-        <div
-            class="flex gap-3 text-[9px] mt-2 uppercase font-bold tracking-wider text-slate-400"
-        >
-            {#if variant === "address"}
-                <div class="flex items-center gap-1">
-                    <div
-                        class="w-1.5 h-1.5 rounded-full bg-slate-200 opacity-80"
-                    ></div>
-                    Feet
-                </div>
-                <div class="flex items-center gap-1">
-                    <div
-                        class="w-1.5 h-1.5 rounded-full"
-                        style="background-color: {status.color}"
-                    ></div>
-                    Shoulders
-                </div>
-            {:else}
-                <div class="flex items-center gap-1">
-                    <div
-                        class="w-1.5 h-1.5 rounded-full bg-slate-200 opacity-80"
-                    ></div>
-                    Feet
-                </div>
-                <div class="flex items-center gap-1">
-                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                    Hip
-                </div>
-                <div class="flex items-center gap-1">
-                    <div class="w-1.5 h-1.5 rounded-full bg-lime-400"></div>
-                    Shoulders
-                </div>
-            {/if}
-        </div>
-    </div>
+    {/if}
 </div>

@@ -33,6 +33,10 @@
             email = "";
             password = "";
             name = "";
+
+            // Reload app so we can trigger a new user ID sync between client and server
+            // and also create a new session with the logged in user ID.
+            window.location.reload();
         } catch (e: any) {
             error = e.message || "An error occurred";
         } finally {

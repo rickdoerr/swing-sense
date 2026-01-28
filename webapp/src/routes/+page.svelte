@@ -1,10 +1,11 @@
 <script lang="ts">
   import VideoUpload from "$lib/components/video-upload.svelte";
   import SplineGraph from "$lib/components/spline-graph.svelte";
-  import MetricCard from "$lib/components/metric-card.svelte";
   import VelocityGraph from "$lib/components/velocity-graph.svelte";
-  import AgentCard from "$lib/components/agent-card.svelte";
+  import { fade } from "svelte/transition";
   import PoseThumbnails from "$lib/components/pose-thumbnails.svelte";
+  import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
+  import SwingSummary from "$lib/components/swing-summary.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
 
   const analyst = new PoseAnalyst();
@@ -44,46 +45,21 @@
           </div>
         </div>
 
-        <div class="mt-4">
-          <div class="mt-4">
-            <PoseThumbnails {analyst} />
-          </div>
-        </div>
+        {#if analyst.processingState !== "idle"}
+          <div class="mt-4 space-y-4">
+            <div transition:fade>
+              <PoseThumbnails {analyst} />
+            </div>
 
-        <div class="space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <h3
-              class="text-base font-semibold text-theme-text-secondary uppercase tracking-wider text-xs"
-            >
-              Swing metrics
-            </h3>
-          </div>
+            <div transition:fade>
+              <SwingThumbnails {analyst} />
+            </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <MetricCard
-              label="Shoulder Rotation"
-              value={analyst.metrics?.shoulderRotation ?? null}
-              unit="°"
-            />
-            <MetricCard
-              label="Hip Rotation"
-              value={analyst.metrics?.hipRotation ?? null}
-              unit="°"
-            />
-            <MetricCard
-              label="X-Factor"
-              value={analyst.metrics?.xFactor ?? null}
-              unit="°"
-            />
+            <div transition:fade>
+              <SwingSummary {analyst} />
+            </div>
           </div>
-
-          <div class="mt-4">
-            <AgentCard
-              shoulderRotation={analyst.metrics?.shoulderRotation ?? null}
-              hipRotation={analyst.metrics?.hipRotation ?? null}
-            />
-          </div>
-        </div>
+        {/if}
 
         <div class="space-y-3">
           <h3
@@ -97,6 +73,7 @@
               <VelocityGraph
                 trajectory={analyst.metrics.trajectory}
                 detectedFrame={analyst.metrics.topOfSwingFrame}
+                impactFrame={analyst.metrics.impactFrame}
               />
             {:else}
               <div
@@ -113,6 +90,7 @@
               >Left Wrist Velocity</span
             >
             <span class="text-theme-highlight font-medium">Top of Swing</span>
+            <span class="text-red-500 font-medium">Impact</span>
           </div>
         </div>
       </section>

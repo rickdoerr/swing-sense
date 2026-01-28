@@ -1,14 +1,16 @@
-/*
-    Agent server run request.
-*/
-export interface AgentRunRequest {
+
+
+export interface AgentRunSSERequest {
     appName: string;
     userId: string;
     sessionId: string;
-    newMessage: AgentRunMessage;
+    newMessage: AgentRunSSERequestMessage;
+    streaming: boolean;
 }
 
-export interface AgentRunMessage {
+export interface AgentRunSSERequestMessage {
     role: string;
-    parts: { text: string }[];
+    parts: AgentRunSSERequestPart[];
 }
+
+export type AgentRunSSERequestPart = { text: string } | { inlineData: { displayName: string; data: string; mimeType: string } };

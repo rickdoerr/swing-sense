@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import type { Session } from "$lib/utils/session";
+    import type { Session } from "$lib/utils/session.svelte";
 
     const sessionStore = getContext<{ current: Session }>("sessionState");
     let session = $derived(sessionStore.current);

@@ -4,6 +4,7 @@ import type { SwingTrajectoryPoint } from './swing-metrics';
 const COLOR_VELOCITY = 0x0d9488; // teal-600
 const COLOR_ZERO_AXIS = 0x94a3b8; // slate-400
 const COLOR_TOS_MARKER = 0xf97316; // orange-500
+const COLOR_IMPACT_MARKER = 0xef4444; // red-500
 
 export class VelocityTracker {
 
@@ -15,7 +16,7 @@ export class VelocityTracker {
     /**
      * Updates the graph with new calculation data.
      */
-    update(trajectory: SwingTrajectoryPoint[], detectedToSFrame: number): void {
+    update(trajectory: SwingTrajectoryPoint[], detectedToSFrame: number, detectedImpactFrame: number = -1): void {
         this.clearGraph();
 
         if (trajectory.length === 0) return;
@@ -65,6 +66,14 @@ export class VelocityTracker {
                 new THREE.Vector3(tosX, this.camera_.bottom, 0),
                 new THREE.Vector3(tosX, this.camera_.top, 0)
             ], COLOR_TOS_MARKER);
+        }
+
+        if (detectedImpactFrame >= 0 && detectedImpactFrame < trajectory.length) {
+            const impactX = mapX(detectedImpactFrame);
+            this.drawLine([
+                new THREE.Vector3(impactX, this.camera_.bottom, 0),
+                new THREE.Vector3(impactX, this.camera_.top, 0)
+            ], COLOR_IMPACT_MARKER);
         }
     }
 

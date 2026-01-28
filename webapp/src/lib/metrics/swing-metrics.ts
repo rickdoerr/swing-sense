@@ -1,52 +1,47 @@
 import * as THREE from 'three';
 import { safeNormal } from '../math/geometry';
-
-export interface SwingTrajectoryPoint {
-    frameIndex: number;
-    shoulderRotation: number;
-    hipRotation: number;
-    xFactor: number;
-    wristVelocity: number;
-}
+import type { SwingMetricsResult, SwingTrajectoryPoint } from './types';
+export type { SwingMetricsResult, SwingTrajectoryPoint } from './types';
+import { detectTopSwing } from './poses/top-swing';
+import { detectImpact, classifyShot } from './poses/impact';
 
 export class SwingMetrics {
     /**
     *    Calculates the rotational difference between shoulders and hips.
     *    @param normalizedFrames Array of frames, where each frame is an array of THREE.Vector3
     */
-    calculate(normalizedFrames: THREE.Vector3[][]): {
-        shoulderRotation: number;
-        hipRotation: number;
-        xFactor: number;
-        topOfSwingFrame: number;
-        addressShoulderAngle: number;
-        trajectory: SwingTrajectoryPoint[];
-    } {
+    calculate(normalizedFrames: THREE.Vector3[][]): SwingMetricsResult {
         this.reset();
 
         const LEFT_SHOULDER = 11;
         const RIGHT_SHOULDER = 12;
+        const LEFT_WRIST = 15;
         const LEFT_HIP = 23;
         const RIGHT_HIP = 24;
         const LEFT_HEEL = 29;
         const RIGHT_HEEL = 30;
-        const LEFT_WRIST = 15;
 
         if (normalizedFrames.length < 10) {
             console.warn("Not enough video frames to calculate swing metrics.");
-            return { shoulderRotation: 0, hipRotation: 0, xFactor: 0, topOfSwingFrame: 0, addressShoulderAngle: 0, trajectory: [] };
+            return {
+                shoulderRotation: 0,
+                hipRotation: 0,
+                xFactor: 0,
+                topOfSwingFrame: 0,
+                impactFrame: 0,
+                downswingSequence: [],
+                addressShoulderAngle: 0,
+                shotClassification: [],
+                trajectory: []
+            };
         }
 
-        // Using the first frame as our baseline
         const addressPose = normalizedFrames[0];
 
-        // The baseline hip and shoulder vectors are projected on the XY plane. 
         const addressHipVec = this.getHorizontalVector(addressPose[LEFT_HIP], addressPose[RIGHT_HIP]);
         const addressShoulderVec = this.getHorizontalVector(addressPose[LEFT_SHOULDER], addressPose[RIGHT_SHOULDER]);
         const addressFootVec = this.getHorizontalVector(addressPose[LEFT_HEEL], addressPose[RIGHT_HEEL]);
 
-        // Calculate Address Shoulder Alignment relative to Feet
-        // Angle between Shoulder Vector and Foot Vector
         let addressShoulderAngleRad = addressFootVec.angleTo(addressShoulderVec);
         if (this.isClockwise(addressFootVec, addressShoulderVec)) addressShoulderAngleRad = -addressShoulderAngleRad;
         this.addressShoulderAngle_ = addressShoulderAngleRad * (180 / Math.PI);
@@ -73,13 +68,10 @@ export class SwingMetrics {
 
             const currentXFactor = Math.abs(shoulderTurnDeg - hipTurnDeg);
 
-            // Wrist velocity calculation (Y-axis)
-            // +Y is forward (in front of golfer), -Y is backwards (behind golfer)
             const currentWristPos = new THREE.Vector3(pose[LEFT_WRIST].x, pose[LEFT_WRIST].y, pose[LEFT_WRIST].z);
 
-            // Velocity = delta position / delta time (assuming 1 unit time per frame)
             // TODO add smoothing
-            const velocityY = (currentWristPos.y - previousWristPos.y) * 100; // Scaling factor for readability
+            const velocityY = (currentWristPos.y - previousWristPos.y) * 100;
             previousWristPos = currentWristPos;
 
             this.trajectory_.push({
@@ -91,7 +83,6 @@ export class SwingMetrics {
             });
         });
 
-        // Smooth the wrist velocity to reduce noise (moving avg 5 frames)
         const smoothedVelocities = this.trajectory_.map((pt, i, arr) => {
             const start = Math.max(0, i - 2);
             const end = Math.min(arr.length, i + 3);
@@ -100,46 +91,47 @@ export class SwingMetrics {
             return sum / window.length;
         });
 
-        // Update trajectory with smoothed values
         this.trajectory_.forEach((pt, i) => {
             pt.wristVelocity = smoothedVelocities[i];
         });
 
-        let maxVelocityFrame = 0;
-        let maxVelocity = 0;
-        const IGNORE_START_FRAMES = 15;
+        // 1. Detect Top of Swing
+        this.topOfSwingFrame_ = detectTopSwing(this.trajectory_);
 
-        for (let i = IGNORE_START_FRAMES; i < this.trajectory_.length; i++) {
-            const pt = this.trajectory_[i];
-            if (Math.abs(pt.wristVelocity) > maxVelocity && Math.abs(pt.shoulderRotation) < 140) {
-                maxVelocity = Math.abs(pt.wristVelocity);
-                maxVelocityFrame = pt.frameIndex;
-            }
-        }
-
-        // Find Top of Swing: Max shoulder rotation BEFORE peak velocity
-        const searchLimitFrame = maxVelocity > 5 ? maxVelocityFrame : this.trajectory_.length;
-
-        // Reset max tracking for the second pass
-        let maxShoulderRot = 0;
-        let bestFrameIndex = 0;
-
-        for (let i = 0; i < searchLimitFrame; i++) {
-            const pt = this.trajectory_[i];
-            if (Math.abs(pt.shoulderRotation) > maxShoulderRot) {
-                maxShoulderRot = Math.abs(pt.shoulderRotation);
-                bestFrameIndex = pt.frameIndex;
-            }
-        }
-
-        // Set the final metrics based on the best frame found
-        if (this.trajectory_.length > 0) {
-            const tosPoint = this.trajectory_[bestFrameIndex];
+        if (this.trajectory_.length > 0 && this.topOfSwingFrame_ < this.trajectory_.length) {
+            const tosPoint = this.trajectory_[this.topOfSwingFrame_];
             this.shoulderRotation_ = Math.abs(tosPoint.shoulderRotation);
             this.hipRotation_ = Math.abs(tosPoint.hipRotation);
             this.xFactor_ = tosPoint.xFactor;
-            this.topOfSwingFrame_ = bestFrameIndex;
         }
+
+        // 2. Detect Impact
+        this.impactFrame_ = detectImpact(this.trajectory_, normalizedFrames, this.topOfSwingFrame_);
+
+        // 3. Classify Shot
+        const classifications = classifyShot(normalizedFrames, this.impactFrame_, addressPose);
+
+        // 4. Determine Downswing Sequence (2 intermediate + Impact)
+        const sequence: number[] = [];
+        if (this.topOfSwingFrame_ < this.impactFrame_) {
+            const range = this.impactFrame_ - this.topOfSwingFrame_;
+            // We want 2 intermediate frames.
+            // 0% (TOS) ... 33% ... 66% ... 100% (Impact)
+            // But user said "Top of Swing, Mid-Downswing, Impact" in plan, but "two more frames between" in chat.
+            // Let's go with: [33%, 66%, 100%] roughly.
+
+            const p1 = Math.round(this.topOfSwingFrame_ + range * 0.33);
+            const p2 = Math.round(this.topOfSwingFrame_ + range * 0.66);
+
+            // Ensure distinct and ordered
+            if (p1 > this.topOfSwingFrame_ && p1 < this.impactFrame_) sequence.push(p1);
+            if (p2 > p1 && p2 < this.impactFrame_) sequence.push(p2);
+        }
+        // Always include impact at the end
+        sequence.push(this.impactFrame_);
+
+        // Ensure we have 3 frames if possible, even if duplicate (though UI should handle uniques)
+        // If range is too small, we might just have impact. UI will handle it.
 
         this.roundMetrics();
 
@@ -148,15 +140,14 @@ export class SwingMetrics {
             hipRotation: this.hipRotation_,
             xFactor: this.xFactor_,
             topOfSwingFrame: this.topOfSwingFrame_,
+            impactFrame: this.impactFrame_,
+            downswingSequence: sequence,
             addressShoulderAngle: this.addressShoulderAngle_,
+            shotClassification: classifications,
             trajectory: this.trajectory_
         };
     }
 
-    /*
-        Helper: Gets a vector between two points, flattened to the XY plane (removes Z tilt).
-        This simulates looking at the golfer from directly above.
-     */
     private getHorizontalVector(p1: THREE.Vector3, p2: THREE.Vector3): THREE.Vector3 {
         const vCandidate = new THREE.Vector3().subVectors(p2, p1);
         vCandidate.z = 0;
@@ -164,12 +155,6 @@ export class SwingMetrics {
         return safeNormal(vCandidate);
     }
 
-    /*
-        Helper: Determines if rotation is clockwise or counter clockwise
-        From a top-down view (onto XY plane)
-        - cross product > 0 counter-clockwise
-        - cross product < 0 clockwise
-    */
     private isClockwise(from: THREE.Vector3, to: THREE.Vector3): boolean {
         const cross = new THREE.Vector3().crossVectors(from, to);
         return cross.z < 0;
@@ -180,6 +165,7 @@ export class SwingMetrics {
         this.hipRotation_ = 0;
         this.xFactor_ = 0;
         this.topOfSwingFrame_ = 0;
+        this.impactFrame_ = 0;
         this.trajectory_ = [];
     }
 
@@ -194,6 +180,7 @@ export class SwingMetrics {
     private hipRotation_: number = 0;
     private xFactor_: number = 0;
     private topOfSwingFrame_: number = 0;
+    private impactFrame_: number = 0;
     private addressShoulderAngle_: number = 0;
     private trajectory_: SwingTrajectoryPoint[] = [];
 }
