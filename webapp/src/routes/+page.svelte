@@ -1,12 +1,11 @@
 <script lang="ts">
   import VideoUpload from "$lib/components/video-upload.svelte";
   import SplineGraph from "$lib/components/spline-graph.svelte";
-  import MetricCard from "$lib/components/metric-card.svelte";
   import VelocityGraph from "$lib/components/velocity-graph.svelte";
+  import { fade } from "svelte/transition";
   import PoseThumbnails from "$lib/components/pose-thumbnails.svelte";
   import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
   import SwingSummary from "$lib/components/swing-summary.svelte";
-  import RotationDial from "$lib/components/rotation-dial.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
 
   const analyst = new PoseAnalyst();
@@ -46,48 +45,21 @@
           </div>
         </div>
 
-        <div class="mt-4">
-          <div class="mt-4">
-            <PoseThumbnails {analyst} />
-            <SwingThumbnails {analyst} />
-            <div class="mt-4">
+        {#if analyst.processingState !== "idle"}
+          <div class="mt-4 space-y-4">
+            <div transition:fade>
+              <PoseThumbnails {analyst} />
+            </div>
+
+            <div transition:fade>
+              <SwingThumbnails {analyst} />
+            </div>
+
+            <div transition:fade>
               <SwingSummary {analyst} />
             </div>
           </div>
-        </div>
-
-        <div class="space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <h3
-              class="text-base font-semibold text-theme-text-secondary uppercase tracking-wider text-xs"
-            >
-              Swing metrics
-            </h3>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <MetricCard
-              label="Shoulder Rotation"
-              value={analyst.metrics?.shoulderRotation ?? null}
-              unit="°"
-            />
-            <MetricCard
-              label="Hip Rotation"
-              value={analyst.metrics?.hipRotation ?? null}
-              unit="°"
-            />
-            <MetricCard
-              label="X-Factor"
-              value={analyst.metrics?.xFactor ?? null}
-              unit="°"
-            />
-            <MetricCard
-              label="Shot Type"
-              value={analyst.metrics?.shotClassification.join(", ") ?? "-"}
-              unit=""
-            />
-          </div>
-        </div>
+        {/if}
 
         <div class="space-y-3">
           <h3

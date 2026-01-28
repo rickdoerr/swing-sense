@@ -437,6 +437,7 @@ export class PoseAnalyst {
         this.topOfSwingImage = null;
         this.downswingImages = [];
         this.agentAnalysis = null;
+        this.agentResponses = {};
     }
     // Private
     private videoElem_: HTMLVideoElement | null = null;
