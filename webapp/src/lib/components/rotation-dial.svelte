@@ -346,7 +346,7 @@
     <div class="mt-2 flex flex-col items-center gap-1 min-h-[60px] w-full">
         <div class="flex items-baseline gap-1.5">
             <span
-                class="text-xs text-slate-400 font-bold tracking-wider uppercase"
+                class="text-xs text-theme-text-secondary font-bold tracking-wider uppercase"
             >
                 {variant === "address" ? "Deviation" : "X-Factor"}
             </span>
@@ -364,12 +364,12 @@
 
         <!-- Legend Dots -->
         <div
-            class="flex gap-3 text-[9px] mt-2 uppercase font-bold tracking-wider text-slate-400"
+            class="flex gap-3 text-[9px] mt-2 uppercase font-bold tracking-wider text-theme-text-secondary"
         >
             {#if variant === "address"}
                 <div class="flex items-center gap-1">
                     <div
-                        class="w-1.5 h-1.5 rounded-full bg-slate-200 opacity-80"
+                        class="w-1.5 h-1.5 rounded-full bg-theme-text-secondary opacity-50"
                     ></div>
                     Feet
                 </div>
@@ -383,7 +383,7 @@
             {:else}
                 <div class="flex items-center gap-1">
                     <div
-                        class="w-1.5 h-1.5 rounded-full bg-slate-200 opacity-80"
+                        class="w-1.5 h-1.5 rounded-full bg-theme-text-secondary opacity-50"
                     ></div>
                     Feet
                 </div>

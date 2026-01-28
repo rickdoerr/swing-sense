@@ -37,13 +37,15 @@
 </div>
 
 {#if analyst.agentResponses["ImpactAnalysisAgent"]}
-    <div class="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+    <div
+        class="mt-3 bg-theme-surface border border-theme-border rounded-xl p-3 shadow-sm"
+    >
         <h4
-            class="text-[10px] font-semibold uppercase tracking-wider text-blue-400 m-0 mb-1"
+            class="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary m-0 mb-1"
         >
             Impact Analysis
         </h4>
-        <p class="text-xs text-blue-200 leading-relaxed">
+        <p class="text-xs text-theme-text-primary leading-relaxed">
             {analyst.agentResponses["ImpactAnalysisAgent"]}
         </p>
     </div>
