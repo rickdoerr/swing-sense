@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   agent:
+    image: swing-sense-agent:latest
     build: 
       context: ./agent
       dockerfile: Dockerfile
@@ -15,8 +16,9 @@ services:
       - golf-net
 
   webapp:
+    image: swing-sense-webapp:latest
     build: 
-      context: ./pose-estimator
+      context: ./webapp
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -26,6 +28,12 @@ services:
       # In Docker network, 'agent' resolves to the agent service IP
       - AGENT_BASE_URL=http://agent:8000
       - ORIGIN=http://localhost:3000
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - HOST=0.0.0.0
+      - BODY_SIZE_LIMIT=Infinity
+    volumes:
+      - ./sqlite.db:/app/sqlite.db
     networks:
       - golf-net
 

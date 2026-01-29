@@ -10,11 +10,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
     try {
         clientRequest = (await request.json()) as AgentRunSSERequest;
-    } catch {
+    } catch (e) {
+        console.error("Failed to parse request JSON:", e);
         throw error(400, 'Invalid JSON in request body!');
     }
 
     const url = `${baseURL}/run_sse`;
+    console.log(`Forwarding request to Agent: ${url}`);
 
     // Forward the request to the agent server
     const agentResponse = await fetch(url, {
@@ -28,6 +30,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     if (!agentResponse.ok) {
         const bodyText = await agentResponse.text().catch(() => '');
+        console.error(`Agent server returned error: ${agentResponse.status} ${bodyText}`);
         throw error(
             agentResponse.status,
             `Failed to call Agent server: ${bodyText || agentResponse.statusText}`

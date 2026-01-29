@@ -1,5 +1,5 @@
 from google.adk.agents.llm_agent import LlmAgent
-from ..schemas import AddressAnalysis
+from schemas import AddressAnalysis
 from . import prompt
 
 AGENT_MODEL = 'gemini-3-flash-preview'

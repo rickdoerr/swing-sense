@@ -7,9 +7,9 @@ docker compose build
 docker save -o agent_image.tar swing-sense-agent:latest
 
 # Save the webapp image
-docker save -o webapp_image.tar sing-sense-webapp:latest
+docker save -o webapp_image.tar swing-sense-webapp:latest
 
-# Transfer to host for 
+# Transfer to host
 #scp docker-compose.yaml agent_image.tar webapp_image.tar svetlo@webserver.local:~/swing-sense/
 
 # Load the images into cache

@@ -13,6 +13,9 @@ RUN bun run build
 FROM oven/bun:1-alpine
 WORKDIR /app
 
+# Install dependencies for building native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
 
@@ -30,4 +33,5 @@ ENV ORIGIN=http://localhost:3000
 
 COPY --from=builder /app/src/lib/utils/auth.ts ./src/lib/utils/auth.ts
 
+# Ensure the database file exists or is writable if mounted
 CMD ["sh", "-c", "bun run db:migrate && bun run build/index.js"]
