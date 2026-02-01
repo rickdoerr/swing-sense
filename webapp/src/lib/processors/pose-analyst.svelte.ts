@@ -128,7 +128,9 @@ export class PoseAnalyst {
 
                 this.processFrameResult(result);
 
-                currentTime += 1 / 30; // 30 fps target
+                // Target 30fps
+                const frameIndex = Math.round(currentTime * 30) + 1;
+                currentTime = frameIndex / 30;
             }
 
             if (!signal.aborted) {
