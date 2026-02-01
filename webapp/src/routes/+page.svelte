@@ -7,6 +7,7 @@
   import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
   import SwingSummary from "$lib/components/swing-summary.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
+  import AnalysisLoading from "$lib/components/analysis-loading.svelte";
 
   const analyst = new PoseAnalyst();
 </script>
@@ -47,17 +48,23 @@
 
         {#if analyst.processingState !== "idle"}
           <div class="mt-4 space-y-4">
-            <div transition:fade>
-              <PoseThumbnails {analyst} />
-            </div>
+            {#if analyst.processingState !== "completed"}
+              <div transition:fade>
+                <AnalysisLoading />
+              </div>
+            {:else}
+              <div transition:fade>
+                <PoseThumbnails {analyst} />
+              </div>
 
-            <div transition:fade>
-              <SwingThumbnails {analyst} />
-            </div>
+              <div transition:fade>
+                <SwingThumbnails {analyst} />
+              </div>
 
-            <div transition:fade>
-              <SwingSummary {analyst} />
-            </div>
+              <div transition:fade>
+                <SwingSummary {analyst} />
+              </div>
+            {/if}
           </div>
         {/if}
 

@@ -3,81 +3,42 @@ import type { SwingTrajectoryPoint, SwingFrame } from '../types';
 
 /**
  * Detects the Impact frame based on velocity and swing phase.
+ * Detects the Impact frame based on Wrist Velocity Zero-Crossing.
+ * Finds the max velocity after Top of Swing, then the first subsequent frame where velocity <= 0.
  * 
  * @param trajectory The computed trajectory.
- * @param topOfSwingFrame The previously detected Top of Swing frame index.
- * @returns The estimated impact frame index.
- */
-/**
- * Detects the Impact frame based on the lowest point of the virtual club head.
- * 
- * @param trajectory The computed trajectory (metrics).
- * @param frames The raw 3D pose frames.
+ * @param frames The raw 3D pose frames (unused in this strategy).
  * @param topOfSwingFrame The previously detected Top of Swing frame index.
  * @returns The estimated impact frame index.
  */
 export function detectImpact(trajectory: SwingTrajectoryPoint[], frames: SwingFrame[], topOfSwingFrame: number): number {
-    if (frames.length === 0) return 0;
+    if (trajectory.length === 0) return 0;
 
-    // Search range: From Top of Swing to the end of the recording.
-    // If TOS is invalid (0), start from beginning, but realistically must be after TOS.
+    // Search range: From Top of Swing to the end.
     const startFrame = topOfSwingFrame > 0 ? topOfSwingFrame : 0;
 
-    let highestYValue = -Infinity; // Represents the physical lowest point (max Y in screen coords)
-    let impactFrame = startFrame;
-
-    const LEFT_SHOULDER = 11;
-    const LEFT_ELBOW = 13;
-    const LEFT_WRIST = 15;
-
-    // We want to find the FIRST major low point (Max Y) after Top of Swing.
-    // If we just search the whole array, we might find the user dropping the club at the end.
-    // Strategy: value should increase (go lower) then decrease (go higher).
-    // If we see it go "up" (decrease Y) significantly/consistently, we stop.
-
-    // 1. Find the Peak Wrist Velocity in the Downswing (TOS -> End)
-    // This anchors our search to the actual swing event, avoiding early noise.
-    let maxVelocity = 0;
+    // 1. Find Peak positive Wrist Velocity in the Downswing
+    let maxVelocity = -Infinity;
     let maxVelFrame = startFrame;
 
-    for (let i = startFrame; i < frames.length; i++) {
-        if (trajectory[i]) {
-            const v = Math.abs(trajectory[i].wristVelocity);
-            if (v > maxVelocity) {
-                maxVelocity = v;
-                maxVelFrame = i;
-            }
+    for (let i = startFrame; i < trajectory.length; i++) {
+        const v = trajectory[i].wristVelocity;
+        if (v > maxVelocity) {
+            maxVelocity = v;
+            maxVelFrame = i;
         }
     }
 
-    // 2. Define Search Window for Impact (Lowest Point)
-    // Impact usually occurs near peak wrist velocity (typically slightly after as wrists unhinge).
-    // range: [TOS ... MaxVel + Padding]
-    // We limit the end to avoid finding "club drop" at the end of recording.
-    const SEARCH_WINDOW_PADDING = 20;
-    const searchEnd = Math.min(frames.length, maxVelFrame + SEARCH_WINDOW_PADDING);
-
-    // Reset defaults for the search
-    highestYValue = -Infinity; // Lowest physical point
-    impactFrame = maxVelFrame; // Default to max vel if we fail? Or startFrame?
-
-    // Scan for lowest point (Max Y)
-    // We can probably start searching a bit before maxVelFrame too, or just from TOS?
-    // TOS is safe.
-    for (let i = startFrame; i < searchEnd; i++) {
-        const pose = frames[i];
-        if (!pose[LEFT_SHOULDER] || !pose[LEFT_ELBOW] || !pose[LEFT_WRIST]) continue;
-
-        const clubHead = getProbePoint(pose[LEFT_SHOULDER], pose[LEFT_ELBOW], pose[LEFT_WRIST]);
-        const currentY = clubHead.y;
-
-        if (currentY > highestYValue) {
-            highestYValue = currentY;
-            impactFrame = i;
+    // 2. Find Zero-Crossing (Positive -> Negative or Zero)
+    // This represents the point of maximum extension where the wrists stop moving forward relative to the camera frame.
+    for (let i = maxVelFrame; i < trajectory.length; i++) {
+        if (trajectory[i].wristVelocity <= 0) {
+            return i;
         }
     }
 
-    return impactFrame;
+    // Fallback
+    return maxVelFrame;
 }
 
 /**

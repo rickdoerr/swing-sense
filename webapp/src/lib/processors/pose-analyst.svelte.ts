@@ -193,7 +193,6 @@ export class PoseAnalyst {
     }
 
     private async completeProcessing() {
-        this.processingState = "completed";
         if (this.sessionData_?.history && this.sessionData_.history.length > 0) {
             this.landmarksHistory = this.sessionData_.history;
             this.metrics = this.swingMetricsCalculator_.calculate(this.landmarksHistory);
@@ -217,6 +216,7 @@ export class PoseAnalyst {
                 this.runAgentSSEAnalysis();
             }
         }
+        this.processingState = "completed";
     }
 
 
