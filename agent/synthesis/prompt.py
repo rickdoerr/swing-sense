@@ -10,13 +10,10 @@ Provide a concise summary and a single, high-impact focus area for the user to i
 2. Compare the current findings to the previous analysis.
 
 **Output Structure:**
-Your response MUST be exactly two text blocks separated by a newline:
+Your response MUST be formatted as follows, separated by a single newline character:
 
-**Swing Summary:**
-[One sentence summary of the current swing. If the user improved on their previous focus area, explicitly praise them here.]
-
-**Key Focus Area:**
-[A single, actionable recommendation. If the previous issue persists, reinforce it. If it's new, explain why.]
+Swing Summary: [One sentence summary of the current swing. If the user improved on their previous focus area, explicitly praise them here.]
+Key Focus Area: [A single, actionable recommendation. If the previous issue persists, reinforce it. If it's new, explain why.]
 
 **Input Summaries:**
 *   **Address Analysis:**
