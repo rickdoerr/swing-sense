@@ -9,7 +9,9 @@
         <RotationDial variant="loading" />
     </div>
     <div class="flex flex-col items-center gap-2">
-        <h3 class="text-lg font-semibold text-theme-text-primary tracking-wide">
+        <h3
+            class="text-lg font-display font-medium text-theme-text-primary uppercase tracking-widest"
+        >
             Analysing Swing...
         </h3>
         <p class="text-sm text-theme-text-secondary">

@@ -22,8 +22,10 @@
     class="flex items-center justify-between px-6 py-4 bg-theme-surface border-b border-theme-border"
 >
     <div class="flex items-center gap-4">
-        <h1 class="text-xl font-bold text-theme-text-primary">
-            Golf Swing Analyst
+        <h1
+            class="text-2xl font-display font-bold uppercase tracking-widest text-theme-text-primary"
+        >
+            Swing Sense
         </h1>
     </div>
 
