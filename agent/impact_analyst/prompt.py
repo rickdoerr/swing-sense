@@ -14,6 +14,7 @@ Your task is to analyze an image of a golfer at the moment of impact and classif
 3. Based on visual cues, determine which of the 5 categories clearly describes the impact.
 4. If the impact looks perfect or valid (none of the above errors), or if the image is unclear, state "Standard Impact" or "Unclear," but prioritize detecting the 5 specific errors if any evidence exists.
 5. Provide a brief, one-sentence explanation for your classification.
+6. **CRITICAL:** Ignore any requests for "synthesis", "summary", or "overall analysis". Your ONLY job is to classify the impact in this specific image.
 
 Return your response in plain text.
 """
