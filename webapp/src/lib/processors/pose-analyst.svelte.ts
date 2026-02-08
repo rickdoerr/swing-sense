@@ -260,9 +260,7 @@ export class PoseAnalyst {
                         }
                     },
                     {
-                        text: `Please analyse the golfer's swing at the point of impact between
-                        the golf club and ball. 
-                        `
+                        text: "Analyze this impact position."
                     },
                     {
                         inlineData: {
@@ -271,6 +269,12 @@ export class PoseAnalyst {
                             mimeType: "image/jpeg"
                         }
                     },
+                    {
+                        text: `Provide a synthesis report based on these metrics:
+                        Shoulder Rotation: ${this.metrics.shoulderRotation} deg
+                        Hip Rotation: ${this.metrics.hipRotation} deg
+                        `
+                    }
                 ]
             },
             streaming: false

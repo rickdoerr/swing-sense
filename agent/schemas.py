@@ -24,3 +24,12 @@ class ImpactAnalysis(BaseModel):
         description="An image of the golfer around the time of impact between golf club and ball.",
         alias="impact.jpg"
     )
+
+class SynthesisAnalysis(BaseModel):
+    impact_image: types.Blob = Field(
+        description="An image of the golfer at the moment of impact.",
+        alias="impact.jpg"
+    )
+    swing_metrics: str = Field(
+        description="A text summary of the swing metrics (shoulder and hip rotation)."
+    )
