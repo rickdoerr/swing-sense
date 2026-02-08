@@ -1,44 +1,53 @@
-# Swing Sense Agent
+# Swing Sense AI Agent
 
-## Usage
+The AI Agent service powers the personalized coaching feedback for Swing Sense. It is built using **Google's Agent Development Kit (ADK)** and leverages **Gemini** models to analyze biomechanical data.
 
-Follow these steps to set up and run the project:
+## Architecture: The Parallel Agent Pattern
 
-1.  **Clone the repository**
+We utilize a **Parallel Agent** architecture to process complex swing data efficiently. Instead of a single prompt trying to analyze everything, we split the task among specialized sub-agents:
 
+1.  **Address Agent**: Analyzes the golfer's stance, posture, and alignment before the swing begins.
+2.  **Top of Swing Agent**: Evaluates shoulder rotation (X-Factor), hip turn, and club position at the apex of the backswing.
+3.  **Impact Agent**: Analyzes the moment of contact, focusing on wrist angles and forward shaft lean.
+4.  **Synthesis Agent**: Receives outputs from all the above, resolves conflicts, and generates a cohesive, friendly coaching summary for the user.
+
+## Development Setup
+
+### Prerequisites
+*   Python 3.10+
+*   Google Cloud Project with Gemini API enabled
+
+### Installation
+
+1.  **Create Virtual Environment**
     ```bash
-    git clone https://github.com/rickdoerr/swing-sense.git
-    ```
-
-2.  **Create a virtual environment**
-
-    In the root of the project, create a new virtual environment:
-
-    ```bash
-    cd swing-sense
     python3 -m venv .venv
-    source venv/bin/activate
+    source .venv/bin/activate
     ```
 
-3.  **Install dependencies**
-
-    Install all required packages from `requirements.txt`:
-
+2.  **Install Dependencies**
     ```bash
-    pip install -r agent/requirements.txt
-    adk --verion
+    pip install -r requirements.txt
     ```
 
-4.  **Run the Agent**
-
-    Open the ADK debug web application using the ADK CLI:
-
+3.  **Environment Configuration**
+    Create a `.env` file with your Google API Key:
     ```bash
-    adk web
+    GOOGLE_API_KEY=your_key_here
     ```
 
-    or start the development server 
+### Running the Agent
 
-    ```bash
-    adk api_server
-    ```
+You can run the agent in two modes:
+
+**1. API Server (For Webapp Connection)**
+Starts the agent server that the SvelteKit app connects to.
+```bash
+adk api_server
+```
+
+**2. ADK Debugger (For Prompt Engineering)**
+Opens a visual interface to chat with the agent and inspect internal thoughts/routing.
+```bash
+adk web
+```

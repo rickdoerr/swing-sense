@@ -1,71 +1,62 @@
 # Swing Sense
 
-A web app that analyzes golf swings using computer vision and Generative AI for coaching. 
+**AI-Powered Golf Swing Analysis using Computer Vision & Google Gemini**
+
+![Svelte](https://img.shields.io/badge/svelte-%23f1413d.svg?style=for-the-badge&logo=svelte&logoColor=white)
+![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=google%20gemini&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+
+Swing Sense is a cutting-edge web application that democratizes access to professional golf coaching. It uses **MediaPipe** for real-time skeletal tracking directly in the browser and leverages **Google's Agent Development Kit (ADK)** with **Gemini** to provide personalized, professional-grade coaching feedback.
 
 ## Features
 
-- **Real-time Pose Estimation**: Uses MediaPipe to track 3D body landmarks directly from video input.
-- **Advanced Swing Metrics**: Calculates key biomechanics including:
-  - **Shoulder & Hip Rotation**: Measures body coil.
-  - **X-Factor**: The separation angle between shoulders and hips.
-  - **Wrist Velocity**: Tracks arm speed and identifies impact timing.
-- **AI Coaching**: An integrated AI Agent (running Google ADK) analyses your calculated metrics to provide personalised, actionable feedback.
+*   **Real-time Pose Estimation**: Instant 3D body landmark tracking from video input using MediaPipe.
+*   **Advanced Biometrics**:
+    *   **X-Factor**: Calculates the separation angle between shoulders and hips (key for power).
+    *   **Body Rotation**: Precise tracking of shoulder and hip turn.
+    *   **Tempo & Velocity**: Measures arm speed and swing timing.
+*   **AI Coach**: An intelligent agent pipeline (Address, Backswing, Impact) that analyzes your metrics and converses with you to fix faults.
+*   **3D Visualization**: Interactive 3D rendering of your swing skeleton using Three.js.
 
 ## Architecture
 
-The project consists of a SvelteKit + Bun web application that handles the computer vision, geometry math, and data visualization. It communicates with a separate python service utilizing the Google Agent Development Kit (ADK) to process metrics and generate natural language coaching advice.
+The project is composed of two main services:
+
+1.  **Web Application (SvelteKit + Bun)**: Handles the UI, computer vision, 3D rendering, and metric calculations.
+2.  **AI Agent Service (Python + ADK)**: A parallel agent system that receives swing data, processes it through specialized sub-agents, and returns actionable feedback.
 
 ## Getting Started
 
-### Docker 
-Ensure you have Docker installed and running
+### Docker (Recommended)
 
-```bash
-git clone https://github.com/rickdoerr/swing-sense.git
-./docker-build.sh
-```
+The easiest way to run the full stack is via Docker.
 
-### Local Development
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/rickdoerr/swing-sense.git
+    cd swing-sense
+    ```
 
-#### Agent
-1.  **Create a virtual environment**
-In the root of the project, create a new virtual environment:
+2.  **Configure Environment**
+    Create a `.env` file in the `agent` and `webapp` directory (see .env.example).
+    
+    For the agent, you need a Google Gemini API key:
+    ```bash
+    cp agent/.env.example agent/.env
+    # Edit agent/.env and add GOOGLE_API_KEY=your_key_here
+    ```
 
-```bash
-cd swing-sense
-python3 -m venv .venv
-source .venv/bin/activate
-```
+3.  **Build and Run**
+    ```bash
+    docker-compose up --build
+    ```
+    Access the app at `http://localhost:3000`.
 
-2.  **Install dependencies**
-Install all required packages from `requirements.txt`:
+### Manual Setup
 
-```bash
-pip install -r agent/requirements.txt
-adk --verion
-```
+If you prefer to run services individually for development, please refer to the specific documentation for each service:
 
-3. **Add Google Gemini Credentials**
-Create an .env file (see .env.example) and add your Gemini API key. You can obtain one from https://aistudio.google.com/. 
-
-4.  **Run the Agent**
-In the root of the project, either open the ADK debug web application using the ADK CLI:
-
-```bash
-adk web
-```
-
-or start the development server 
-
-```bash
-adk api_server
-```
-
-#### Webapp
-The app is built with Bun, make sure it's installed on your machine, or visit https://bun.com/ to find out how to do that. With Bun installed: 
-
-```bash
-cd webapp
-bun install
-bun run dev --port=3000 --open
-```
+*   **[Web Application Instructions](./webapp/README.md)** (Frontend & Processing)
+*   **[AI Agent Instructions](./agent/README.md)** (Backend & Intelligence)
