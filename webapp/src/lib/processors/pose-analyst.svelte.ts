@@ -128,7 +128,9 @@ export class PoseAnalyst {
 
                 this.processFrameResult(result);
 
-                currentTime += 1 / 30; // 30 fps target
+                // Target 30fps
+                const frameIndex = Math.round(currentTime * 30) + 1;
+                currentTime = frameIndex / 30;
             }
 
             if (!signal.aborted) {
@@ -191,7 +193,6 @@ export class PoseAnalyst {
     }
 
     private async completeProcessing() {
-        this.processingState = "completed";
         if (this.sessionData_?.history && this.sessionData_.history.length > 0) {
             this.landmarksHistory = this.sessionData_.history;
             this.metrics = this.swingMetricsCalculator_.calculate(this.landmarksHistory);
@@ -215,6 +216,7 @@ export class PoseAnalyst {
                 this.runAgentSSEAnalysis();
             }
         }
+        this.processingState = "completed";
     }
 
 

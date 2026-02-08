@@ -1,44 +1,100 @@
 @import "tailwindcss";
 
 @theme {
-  /* Semantic Color Palette - Light Theme */
-  --color-theme-background: var(--color-slate-50);
-  --color-theme-surface: var(--color-white);
-  --color-theme-surface-subtle: var(--color-slate-100);
+  /* Typography */
+  --font-display: "Unbounded", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-body: "Outfit", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
-  --color-theme-text-primary: var(--color-slate-800);
-  --color-theme-text-secondary: var(--color-slate-500);
-  --color-theme-text-inverted: var(--color-white);
+  /* Fairway Serenity Palette - Light Theme */
+  --color-theme-background: #f8fafc;
+  /* Slate 50 - Open Sky White */
+  --color-theme-surface: #ffffff;
+  /* Pure White */
+  --color-theme-surface-subtle: #f1f5f9;
+  /* Slate 100 - Cloud White */
 
-  --color-theme-accent: var(--color-teal-600);
-  --color-theme-accent-light: var(--color-teal-500);
-  --color-theme-accent-dark: var(--color-teal-700);
+  --color-theme-text-primary: #1e293b;
+  /* Slate 800 - Deep Contrast */
+  --color-theme-text-secondary: #64748b;
+  /* Slate 500 - Soft Stone */
+  --color-theme-text-inverted: #ffffff;
+  /* White Text for dark accents */
 
-  --color-theme-highlight: var(--color-orange-500);
+  --color-theme-accent: #059669;
+  /* Emerald 600 - Fresh Grass */
+  --color-theme-accent-light: #34d399;
+  /* Emerald 400 - Spring Green */
+  --color-theme-accent-dark: #065f46;
+  /* Emerald 800 - Deep Green */
 
-  --color-theme-border: var(--color-slate-200);
-  --color-theme-border-active: var(--color-teal-500);
+  --color-theme-highlight: #0ea5e9;
+  /* Sky 500 - Clear Day */
+  --color-theme-danger: #e11d48;
+  /* Rose 600 */
+
+  --color-theme-border: #e2e8f0;
+  /* Slate 200 - Subtle Line */
+  --color-theme-border-active: #059669;
+  /* Accent Border */
 }
 
+/* Global Resets & Typography */
 :root {
   color-scheme: light;
 }
 
+body {
+  background-color: var(--color-theme-background);
+  color: var(--color-theme-text-primary);
+  font-family: var(--font-body);
+  /* Standard smoothing for light mode */
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
 
 @layer utilities {
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-lg font-display font-semibold transition-all duration-200 uppercase tracking-widest text-xs px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale;
   }
 
   .btn-primary {
-    @apply bg-theme-accent text-white hover:bg-theme-accent-dark shadow-sm;
+    @apply bg-theme-accent text-white hover:bg-theme-accent-dark hover:shadow-md hover:shadow-emerald-200 active:scale-95;
   }
 
   .btn-secondary {
-    @apply bg-theme-surface-subtle text-theme-text-primary border border-theme-border hover:bg-theme-border;
+    @apply bg-white text-theme-text-primary border border-theme-border hover:border-theme-accent hover:text-theme-accent hover:bg-theme-surface-subtle;
   }
 
   .input-field {
-    @apply w-full px-3 py-2 border border-theme-border rounded-md focus:outline-none focus:ring-2 focus:ring-theme-accent/50 bg-theme-background text-theme-text-primary;
+    @apply w-full px-4 py-3 border border-theme-border rounded-lg focus:outline-none focus:border-theme-accent focus:ring-4 focus:ring-emerald-500/10 bg-white text-theme-text-primary placeholder-theme-text-secondary transition-all;
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-theme-background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-theme-surface-subtle);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-theme-border);
   }
 }

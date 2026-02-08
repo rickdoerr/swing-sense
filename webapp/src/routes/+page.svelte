@@ -7,6 +7,7 @@
   import SwingThumbnails from "$lib/components/swing-thumbnails.svelte";
   import SwingSummary from "$lib/components/swing-summary.svelte";
   import { PoseAnalyst } from "$lib/processors/pose-analyst.svelte";
+  import AnalysisLoading from "$lib/components/analysis-loading.svelte";
 
   const analyst = new PoseAnalyst();
 </script>
@@ -39,7 +40,7 @@
           />
 
           <div
-            class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded text-[0.65rem] tracking-wide text-theme-accent-dark font-bold font-mono z-10 shadow-sm border border-slate-100"
+            class="absolute top-3 left-3 bg-theme-surface/90 backdrop-blur-sm px-2.5 py-1 rounded text-[0.65rem] tracking-wide text-theme-accent font-bold font-display z-10 shadow-sm border border-theme-border"
           >
             3D TRAJECTORY
           </div>
@@ -47,17 +48,23 @@
 
         {#if analyst.processingState !== "idle"}
           <div class="mt-4 space-y-4">
-            <div transition:fade>
-              <PoseThumbnails {analyst} />
-            </div>
+            {#if analyst.processingState !== "completed"}
+              <div transition:fade>
+                <AnalysisLoading />
+              </div>
+            {:else}
+              <div transition:fade>
+                <PoseThumbnails {analyst} />
+              </div>
 
-            <div transition:fade>
-              <SwingThumbnails {analyst} />
-            </div>
+              <div transition:fade>
+                <SwingThumbnails {analyst} />
+              </div>
 
-            <div transition:fade>
-              <SwingSummary {analyst} />
-            </div>
+              <div transition:fade>
+                <SwingSummary {analyst} />
+              </div>
+            {/if}
           </div>
         {/if}
 
@@ -90,7 +97,7 @@
               >Left Wrist Velocity</span
             >
             <span class="text-theme-highlight font-medium">Top of Swing</span>
-            <span class="text-red-500 font-medium">Impact</span>
+            <span class="text-theme-danger font-medium">Impact</span>
           </div>
         </div>
       </section>
@@ -106,7 +113,7 @@
   .pose-analyser-container :global(video) {
     width: 100%;
     border-radius: 0.75rem;
-    background-color: var(--color-slate-100);
+    background-color: var(--color-theme-surface-subtle);
     box-shadow:
       0 10px 15px -3px rgb(0 0 0 / 0.1),
       0 4px 6px -4px rgb(0 0 0 / 0.1);

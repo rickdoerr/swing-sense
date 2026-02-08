@@ -16,7 +16,6 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const url = `${baseURL}/run_sse`;
-    console.log(`Forwarding request to Agent: ${url}`);
 
     // Forward the request to the agent server
     const agentResponse = await fetch(url, {

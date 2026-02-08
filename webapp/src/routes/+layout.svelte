@@ -23,7 +23,7 @@
 </svelte:head>
 
 <div
-	class="min-h-screen bg-theme-background text-theme-text-primary font-sans antialiased selection:bg-theme-accent selection:text-white"
+	class="min-h-screen bg-theme-background text-theme-text-primary antialiased selection:bg-theme-accent selection:text-white overflow-x-hidden"
 >
 	<Header />
 	{@render children()}
