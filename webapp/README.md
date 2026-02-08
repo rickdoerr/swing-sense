@@ -1,20 +1,51 @@
-# Swing Sense
+# Swing Sense Web Application
 
-A web app that analyzes golf swings using computer vision and Generative AI for coaching. 
+This is the frontend and core processing engine for Swing Sense. Built with **SvelteKit** and **Bun**, it handles real-time computer vision, 3D rendering, and biomechanical analysis directly in the browser.
 
-## Features
+## Tech Stack
 
-- **Real-time Pose Estimation**: Uses MediaPipe to track 3D body landmarks directly from video input.
-- **Advanced Swing Metrics**: Calculates key biomechanics including:
-  - **Shoulder & Hip Rotation**: Measures body coil.
-  - **X-Factor**: The separation angle between shoulders and hips.
-  - **Wrist Velocity**: Tracks arm speed and identifies impact timing.
+*   **Runtime**: [Bun](https://bun.sh/) (Fast all-in-one JavaScript runtime)
+*   **Framework**: SvelteKit (Vite-based)
+*   **Computer Vision**: Google MediaPipe (Pose Landmarks)
+*   **3D Rendering**: Three.js
+*   **Analysis**: Custom TypeScript implementation of biomechanical physics
+*   **Database**: SQLite (via `better-sqlite3`)
+*   **Authentication**: Better Auth
 
-## Getting Started
+## Key Architecture Modules
 
-### Local Development
+*   **`src/lib/processors`**: Contains the `PoseAnalyst` class which interfaces with MediaPipe to extract 3D landmarks from video streams.
+*   **`src/lib/metrics`**:
+    *   `SwingMetrics`: Calculates velocity, tempo, and positions.
+    *   `Skeleton`: Manages the 3D representation of the golfer.
+*   **`src/lib/rendering`**: Three.js scene management for visualizing the swing in 3D space.
+
+## Development Setup
+
+### Prerequisites
+*   [Bun](https://bun.sh/) installed (`curl -fsSL https://bun.sh/install | bash`)
+
+### Installation
+
+1.  **Install Dependencies**
+    ```bash
+    bun install
+    ```
+
+2.  **Database Migration**
+    Initialize the local SQLite database:
+    ```bash
+    bun run db:migrate
+    ```
+
+3.  **Run Development Server**
+    ```bash
+    bun run dev
+    ```
+    The app will be available at `http://localhost:3000`.
+
+## Build for Production
 
 ```bash
-bun install
-bun run dev --port=3000 --open
+bun run build
 ```
